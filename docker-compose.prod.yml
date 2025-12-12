@@ -1,0 +1,43 @@
+services:
+  grandnode:
+    image: ghcr.io/astrobod427/grandnode2:latest
+    container_name: grandnode
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MongoDbConnection: mongodb://mongo:27017/grandnode
+    volumes:
+      - grandnode_images:/app/wwwroot/assets/images
+      - grandnode_appdata:/app/App_Data
+    depends_on:
+      - mongo
+    networks:
+      - traefik-net
+      - grandnode-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grandnode.rule=Host(`labaraque.shop`) || Host(`www.labaraque.shop`)"
+      - "traefik.http.routers.grandnode.entrypoints=websecure"
+      - "traefik.http.routers.grandnode.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grandnode.loadbalancer.server.port=8080"
+
+  mongo:
+    image: mongo:7
+    container_name: grandnode-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - grandnode-internal
+
+networks:
+  traefik-net:
+    external: true
+    name: portainer-stack_traefik-net
+  grandnode-internal:
+    driver: bridge
+
+volumes:
+  grandnode_images:
+  grandnode_appdata:
+  mongo_data:

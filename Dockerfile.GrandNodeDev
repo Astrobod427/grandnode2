@@ -1,0 +1,6 @@
+# Utilise l'image SDK pour permettre la compilation et 'dotnet watch'
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+LABEL stage=dev-env
+WORKDIR /app
+# La commande 'dotnet watch' lancée par docker-compose se chargera du reste.
+# Le code sera monté via le volume.
