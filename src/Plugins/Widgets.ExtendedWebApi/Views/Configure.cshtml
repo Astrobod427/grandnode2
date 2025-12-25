@@ -1,0 +1,91 @@
+@{
+    Layout = "_ConfigurePlugin";
+}
+
+<div class="note note-info">
+    <h4>Extended Web API Plugin</h4>
+    <p>This plugin provides additional REST API endpoints for managing orders, shipments, and merchandise returns.</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Backend API Endpoints (Admin)</h3>
+    </div>
+    <div class="card-body">
+        <p><strong>Authentication:</strong> JWT Bearer token required</p>
+        <p><strong>Base URL:</strong> <code>/api/admin/</code></p>
+
+        <h5>Orders</h5>
+        <ul>
+            <li><code>GET /api/admin/order</code> - List all orders</li>
+            <li><code>GET /api/admin/order/{id}</code> - Get order details</li>
+            <li><code>POST /api/admin/order/{id}/MarkAsPaid</code> - Mark order as paid</li>
+            <li><code>POST /api/admin/order/{id}/MarkAsAuthorized</code> - Mark payment as authorized</li>
+            <li><code>POST /api/admin/order/{id}/Cancel</code> - Cancel order</li>
+            <li><code>DELETE /api/admin/order/{id}</code> - Delete order</li>
+        </ul>
+
+        <h5>Shipments</h5>
+        <ul>
+            <li><code>GET /api/admin/shipment</code> - List all shipments</li>
+            <li><code>GET /api/admin/shipment/{id}</code> - Get shipment details</li>
+            <li><code>POST /api/admin/shipment/{id}/SetAsShipped</code> - Mark as shipped</li>
+            <li><code>POST /api/admin/shipment/{id}/SetAsDelivered</code> - Mark as delivered</li>
+            <li><code>POST /api/admin/shipment/{id}/SetTrackingNumber</code> - Update tracking number</li>
+            <li><code>DELETE /api/admin/shipment/{id}</code> - Delete shipment</li>
+        </ul>
+
+        <h5>Merchandise Returns</h5>
+        <ul>
+            <li><code>GET /api/admin/merchandisereturn</code> - List all returns</li>
+            <li><code>GET /api/admin/merchandisereturn/{id}</code> - Get return details</li>
+            <li><code>PATCH /api/admin/merchandisereturn/{id}</code> - Update return status/notes</li>
+            <li><code>DELETE /api/admin/merchandisereturn/{id}</code> - Delete return</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">Frontend API Endpoints (Customer)</h3>
+    </div>
+    <div class="card-body">
+        <p><strong>Authentication:</strong> Session-based (customer login)</p>
+        <p><strong>Base URL:</strong> <code>/api/my/</code></p>
+
+        <h5>My Orders</h5>
+        <ul>
+            <li><code>GET /api/my/myorders</code> - List customer's orders</li>
+            <li><code>GET /api/my/myorders/{id}</code> - Get order details</li>
+        </ul>
+
+        <h5>My Shipments</h5>
+        <ul>
+            <li><code>GET /api/my/myshipments</code> - List customer's shipments</li>
+            <li><code>GET /api/my/myshipments/{id}</code> - Get shipment details</li>
+        </ul>
+
+        <h5>My Returns</h5>
+        <ul>
+            <li><code>GET /api/my/myreturns</code> - List customer's returns</li>
+            <li><code>GET /api/my/myreturns/{id}</code> - Get return details</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">Documentation</h3>
+    </div>
+    <div class="card-body">
+        <p>For complete documentation including authentication, request/response examples, and testing instructions, see:</p>
+        <ul>
+            <li><code>Plugins/Widgets.ExtendedWebApi/README.md</code></li>
+            <li><code>Plugins/Widgets.ExtendedWebApi/TESTING.md</code></li>
+        </ul>
+    </div>
+</div>
+
+<div class="note note-warning mt-3">
+    <p><strong>Note:</strong> This plugin does not require any configuration. The endpoints are automatically available once the plugin is installed.</p>
+</div>

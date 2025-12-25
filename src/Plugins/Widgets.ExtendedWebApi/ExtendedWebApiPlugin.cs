@@ -5,5 +5,5 @@ namespace Widgets.ExtendedWebApi;
 
 public class ExtendedWebApiPlugin : BasePlugin, IPlugin
 {
-    public override string ConfigurationUrl() => string.Empty;
+    public override string ConfigurationUrl() => "../ExtendedWebApi/Configure";
 }
