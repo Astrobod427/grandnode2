@@ -1,0 +1,45 @@
+services:
+    grandnode_web:
+        build:
+            context: .
+            dockerfile: Dockerfile.dev # Utilise le nouveau fichier créé
+        container_name: grandnode_dev
+
+        ports:
+            # Port d'accès pour GrandNode
+            - "5011:8080"
+
+        environment:
+            ASPNETCORE_ENVIRONMENT: Development
+            # Connexion au service MongoDB (nom du container sur dev_services_network)
+            ConnectionStrings__MongoDbConnection: mongodb://mongodb_server_dev:27017/grandnode-data
+            DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+            DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+            # Enable file watching in Docker volumes
+            DOTNET_USE_POLLING_FILE_WATCHER: "true"
+
+        volumes:
+            # Montage du code source de GrandNode
+            - .:/app
+            - ~/.nuget/packages:/root/.nuget/packages:ro
+            # Isolation des dossiers de build
+            - /app/src/Web/Grand.Web/bin
+            - /app/src/Web/Grand.Web/obj
+            - /root/.dotnet
+
+        # 💥 COMMANDE CLÉ : Build la solution complète puis watch sur Grand.Web
+        command: >
+            sh -c "
+            echo '🔧 Building complete solution (including all plugins)...' &&
+            dotnet build GrandNode.sln -c Debug &&
+            echo '✅ Solution built successfully' &&
+            echo '👀 Starting dotnet watch...' &&
+            dotnet watch run --project src/Web/Grand.Web/Grand.Web.csproj --urls http://0.0.0.0:8080 --no-launch-profile
+            "
+
+        networks:
+          - dev_services_network
+
+networks:
+  dev_services_network:
+    external: true

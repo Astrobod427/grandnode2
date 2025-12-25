@@ -7,17 +7,19 @@ WORKDIR /app
 COPY Directory.Packages.props /app/
 COPY ./src/ /app/
 
+RUN echo '#!/bin/sh\nfind /app -type d \( -name "bin" -o -name "obj" \) -exec rm -rf {} + 2>/dev/null || true' > /clean.sh && chmod +x /clean.sh
+
 ARG GIT_COMMIT
 ARG GIT_BRANCH
 
 # Build modules
 RUN for module in /app/Modules/*; do \
-    dotnet build "$module" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
+  dotnet build "$module" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
   done
 
 # Build plugins
 RUN for plugin in /app/Plugins/*; do \
-    dotnet build "$plugin" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
+  dotnet build "$plugin" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
   done
 
 # Publish Web project
