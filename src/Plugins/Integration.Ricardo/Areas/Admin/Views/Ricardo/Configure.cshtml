@@ -1,0 +1,181 @@
+@model Integration.Ricardo.Models.RicardoSettings
+@{
+    Layout = "_ConfigurePlugin";
+    ViewData["Title"] = "ricardo.ch Integration Configuration";
+}
+
+<div class="note note-info">
+    <h4>ricardo.ch Integration</h4>
+    <p>Configure your ricardo.ch account credentials and publishing settings.</p>
+</div>
+
+<form asp-action="Configure" method="post">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">API Credentials</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label">Environment</label>
+                <div class="form-check">
+                    <input type="checkbox" asp-for="UseSandbox" class="form-check-input" />
+                    <label class="form-check-label" asp-for="UseSandbox">
+                        Use Sandbox (Test Environment)
+                    </label>
+                </div>
+                <small class="form-text text-muted">Enable this to test with ricardo.ch sandbox environment before going live</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="PartnerId">Partner ID</label>
+                <input type="text" asp-for="PartnerId" class="form-control" />
+                <small class="form-text text-muted">Your ricardo.ch Partner ID (obtained from ricardo.ch)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="PartnerKey">Partner Key</label>
+                <input type="password" asp-for="PartnerKey" class="form-control" />
+                <small class="form-text text-muted">Your ricardo.ch Partner Key (obtained from ricardo.ch)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="AccountUsername">Account Username</label>
+                <input type="text" asp-for="AccountUsername" class="form-control" />
+                <small class="form-text text-muted">Your ricardo.ch account username</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="AccountPassword">Account Password</label>
+                <input type="password" asp-for="AccountPassword" class="form-control" />
+                <small class="form-text text-muted">Your ricardo.ch account password</small>
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-info" onclick="testConnection()">
+                    <i class="fa fa-plug"></i> Test Connection
+                </button>
+                <span id="test-result"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Publishing Settings</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label" asp-for="DefaultCategoryId">Default ricardo Category ID</label>
+                <input type="number" asp-for="DefaultCategoryId" class="form-control" />
+                <small class="form-text text-muted">Default ricardo.ch category ID for products (you can override per product)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="DefaultArticleDurationDays">Article Duration (Days)</label>
+                <input type="number" asp-for="DefaultArticleDurationDays" class="form-control" min="1" max="10" />
+                <small class="form-text text-muted">How long articles stay active on ricardo.ch (1-10 days)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="PriceMarkupPercentage">Price Markup (%)</label>
+                <input type="number" asp-for="PriceMarkupPercentage" class="form-control" min="0" max="100" step="0.1" />
+                <small class="form-text text-muted">Add a percentage markup to ricardo.ch prices (0 = same price as your store)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Stock Synchronization</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" asp-for="EnableStockSync" class="form-check-input" />
+                    <label class="form-check-label" asp-for="EnableStockSync">
+                        Enable Automatic Stock Sync
+                    </label>
+                </div>
+                <small class="form-text text-muted">Automatically sync stock levels with ricardo.ch</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" asp-for="StockSyncIntervalMinutes">Sync Interval (Minutes)</label>
+                <input type="number" asp-for="StockSyncIntervalMinutes" class="form-control" min="15" max="1440" />
+                <small class="form-text text-muted">How often to sync stock (15-1440 minutes)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Advanced</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" asp-for="EnableLogging" class="form-check-input" />
+                    <label class="form-check-label" asp-for="EnableLogging">
+                        Enable Detailed Logging
+                    </label>
+                </div>
+                <small class="form-text text-muted">Enable detailed logging for troubleshooting</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Save Configuration
+        </button>
+    </div>
+</form>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">How to Get API Credentials</h3>
+    </div>
+    <div class="card-body">
+        <ol>
+            <li>Create a professional seller account on <a href="https://www.ricardo.ch" target="_blank">ricardo.ch</a></li>
+            <li>Contact ricardo.ch support to request API access</li>
+            <li>Fill out the <a href="https://help.ricardo.ch/hc/de/articles/115002970529" target="_blank">API application form</a></li>
+            <li>Once approved, you'll receive:
+                <ul>
+                    <li>Partner ID</li>
+                    <li>Partner Key</li>
+                    <li>Sandbox credentials for testing</li>
+                </ul>
+            </li>
+            <li>Enter your credentials above and test the connection</li>
+        </ol>
+        <p class="mt-2">
+            <strong>Need help?</strong> See the plugin documentation or contact ricardo.ch support.
+        </p>
+    </div>
+</div>
+
+<script>
+    function testConnection() {
+        var resultSpan = document.getElementById('test-result');
+        resultSpan.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Testing...';
+
+        fetch('@Url.Action("TestConnection")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultSpan.innerHTML = '<span class="text-success"><i class="fa fa-check"></i> ' + data.message + '</span>';
+            } else {
+                resultSpan.innerHTML = '<span class="text-danger"><i class="fa fa-times"></i> ' + data.message + '</span>';
+            }
+        })
+        .catch(error => {
+            resultSpan.innerHTML = '<span class="text-danger"><i class="fa fa-times"></i> Error: ' + error + '</span>';
+        });
+    }
+</script>

@@ -1,0 +1,11 @@
+{
+  "Group": "Integration",
+  "FriendlyName": "ricardo.ch Integration",
+  "SystemName": "Integration.Ricardo",
+  "Version": "1.0.0",
+  "SupportedVersion": [ "2.3" ],
+  "Author": "GrandNode Team",
+  "DisplayOrder": 1,
+  "FileName": "Integration.Ricardo.dll",
+  "Description": "Integrate your GrandNode store with ricardo.ch marketplace. Publish products, sync stock, and manage orders from switzerland's leading online marketplace."
+}
