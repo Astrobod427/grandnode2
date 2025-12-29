@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Docker: Attacher au processus GrandNode",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:docker-for-debug.getProcessId}",
+            "pipeTransport": {
+                "pipeProgram": "docker",
+                "pipeArgs": [ "exec", "-i", "grandnode_dev" ],
+                "pipeCwd": "${workspaceFolder}"
+            },
+            "sourceFileMap": {
+                "/app": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        }
+    ]
+}
