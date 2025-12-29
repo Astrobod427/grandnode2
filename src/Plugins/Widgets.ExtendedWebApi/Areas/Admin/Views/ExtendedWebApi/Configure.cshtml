@@ -120,7 +120,7 @@
             <div class="col-md-6">
                 <h5>Documentation</h5>
                 <p>Complete API documentation with 10+ examples:</p>
-                <a href="/Plugins/Widgets.ExtendedWebApi/API-SEARCH.md" target="_blank" class="btn btn-info btn-sm">
+                <a href="@Url.Action("ApiSearchDocs", "ExtendedWebApi")" target="_blank" class="btn btn-info btn-sm">
                     📖 View API-SEARCH.md
                 </a>
                 <hr/>
@@ -256,6 +256,9 @@
                 <button type="submit" class="btn btn-primary">
                     🔍 Test Search
                 </button>
+                <button type="button" class="btn btn-info" id="listAllBtn">
+                    📋 List All Products (Diagnostic)
+                </button>
                 <button type="button" class="btn btn-secondary" id="resetForm">
                     🔄 Reset
                 </button>
@@ -288,7 +291,7 @@
         <ul>
             <li><code>Plugins/Widgets.ExtendedWebApi/README.md</code></li>
             <li><code>Plugins/Widgets.ExtendedWebApi/TESTING.md</code></li>
-            <li><strong><code>Plugins/Widgets.ExtendedWebApi/API-SEARCH.md</code></strong> - Advanced Search API Documentation</li>
+            <li><strong><a href="@Url.Action("ApiSearchDocs", "ExtendedWebApi")" target="_blank">API-SEARCH.md</a></strong> - Advanced Search API Documentation</li>
         </ul>
     </div>
 </div>
@@ -343,8 +346,9 @@ document.addEventListener('DOMContentLoaded', function() {
         params.append('pageSize', document.getElementById('pageSize').value);
         params.append('pageIndex', document.getElementById('pageIndex').value);
 
-        const url = `/api/admin/product/search?${params.toString()}`;
-        urlDisplay.textContent = url;
+        const url = `@Url.Action("SearchProducts", "ExtendedWebApi")?${params.toString()}`;
+        const apiUrl = `/api/admin/product/search?${params.toString()}`;
+        urlDisplay.textContent = apiUrl; // Show the API URL for reference
 
         // Hide previous results/errors
         resultsDiv.style.display = 'none';
@@ -383,11 +387,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tbody>
                             ${data.items.map(p => `
                                 <tr>
-                                    <td>${p.name || 'N/A'}</td>
-                                    <td>${p.sku || 'N/A'}</td>
-                                    <td>$${p.price ? p.price.toFixed(2) : '0.00'}</td>
-                                    <td>${p.stockQuantity || 0}</td>
-                                    <td>${p.published ? '✅' : '❌'}</td>
+                                    <td>${p.Name || 'N/A'}</td>
+                                    <td>${p.Sku || 'N/A'}</td>
+                                    <td>$${p.Price ? p.Price.toFixed(2) : '0.00'}</td>
+                                    <td>${p.StockQuantity || 0}</td>
+                                    <td>${p.Published ? '✅' : '❌'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -398,6 +402,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             errorDiv.textContent = `Error: ${error.message}. Make sure you're authenticated with a valid JWT token.`;
+            errorDiv.style.display = 'block';
+        }
+    });
+
+    // List All Products button
+    const listAllBtn = document.getElementById('listAllBtn');
+    listAllBtn.addEventListener('click', async function() {
+        errorDiv.style.display = 'none';
+        resultsDiv.style.display = 'none';
+
+        try {
+            const url = `@Url.Action("ListAllProducts", "ExtendedWebApi")?pageSize=100`;
+            urlDisplay.textContent = url;
+
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            resultsDiv.style.display = 'block';
+            resultsData.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>✅ Diagnostic: Found ${data.totalCount} total products in database</strong>
+                    <p class="mb-0">This confirms products exist. If search returns 0, there's an issue with the search logic.</p>
+                </div>
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>SKU</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Published</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.items.map(p => `
+                            <tr>
+                                <td>${p.Name || 'N/A'}</td>
+                                <td>${p.Sku || 'N/A'}</td>
+                                <td>$${(p.Price || 0).toFixed(2)}</td>
+                                <td>${p.StockQuantity || 0}</td>
+                                <td>${p.Published ? '✅' : '❌'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } catch (error) {
+            errorDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
             errorDiv.style.display = 'block';
         }
     });

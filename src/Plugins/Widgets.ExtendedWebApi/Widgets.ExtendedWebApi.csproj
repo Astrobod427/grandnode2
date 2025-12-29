@@ -44,6 +44,10 @@
         <PackageReference Include="AutoMapper" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="*.md" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
     <Target Name="CopyODataDependencies" AfterTargets="Build">
         <PropertyGroup>
             <NuGetPackagesPath Condition="'$(NuGetPackageRoot)' != ''">$(NuGetPackageRoot)</NuGetPackagesPath>
