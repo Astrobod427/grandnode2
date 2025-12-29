@@ -17,6 +17,9 @@ public class ExtendedWebApiController : BaseAdminPluginController
     private readonly IPermissionService _permissionService;
     private readonly IRepository<Product> _productRepository;
 
+    // API Key for n8n and external integrations
+    private const string API_KEY = "labaraque-api-key-2025";
+
     public ExtendedWebApiController(
         IWebHostEnvironment env,
         IProductService productService,
@@ -27,6 +30,20 @@ public class ExtendedWebApiController : BaseAdminPluginController
         _productService = productService;
         _permissionService = permissionService;
         _productRepository = productRepository;
+    }
+
+    /// <summary>
+    /// Check if request has valid API key or user has admin permissions
+    /// </summary>
+    private async Task<bool> IsAuthorized()
+    {
+        // Check for API key in header
+        var apiKey = Request.Headers["X-API-Key"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(apiKey) && apiKey == API_KEY)
+            return true;
+
+        // Fallback to permission check for admin users
+        return await _permissionService.Authorize(StandardPermission.ManageProducts);
     }
 
     public IActionResult Configure()
@@ -52,8 +69,8 @@ public class ExtendedWebApiController : BaseAdminPluginController
     [HttpGet]
     public async Task<IActionResult> ListAllProducts([FromQuery] int pageSize = 100)
     {
-        if (!await _permissionService.Authorize(StandardPermission.ManageProducts))
-            return Forbid();
+        if (!await IsAuthorized())
+            return Unauthorized();
 
         // Query repository directly
         var products = _productRepository.Table
@@ -135,8 +152,8 @@ public class ExtendedWebApiController : BaseAdminPluginController
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 50)
     {
-        if (!await _permissionService.Authorize(StandardPermission.ManageProducts))
-            return Forbid();
+        if (!await IsAuthorized())
+            return Unauthorized();
 
         // Start with all products from repository
         var query = _productRepository.Table.AsQueryable();
