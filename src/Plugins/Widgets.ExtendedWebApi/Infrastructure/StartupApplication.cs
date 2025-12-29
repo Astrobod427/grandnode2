@@ -17,9 +17,9 @@ public class StartupApplication : IStartupApplication
 
     public void Configure(WebApplication application, IWebHostEnvironment webHostEnvironment)
     {
-        // Nothing to configure in pipeline
+        // Authorization handled by AuthorizeApiAdmin filter
     }
 
-    public int Priority => 510; // After Grand.Module.Api (505)
-    public bool BeforeConfigure => false;
+    public int Priority => 499; // Right before endpoints (500)
+    public bool BeforeConfigure => false; // After routing, before endpoints
 }

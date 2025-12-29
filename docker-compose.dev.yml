@@ -12,7 +12,7 @@ services:
         environment:
             ASPNETCORE_ENVIRONMENT: Development
             # Connexion au service MongoDB (nom du container sur dev_services_network)
-            ConnectionStrings__MongoDbConnection: mongodb://mongodb_server_dev:27017/grandnode-data
+            ConnectionStrings__Mongodb: mongodb://mongodb_server_dev:27017/grandnode-data
             DOTNET_CLI_TELEMETRY_OPTOUT: "true"
             DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
             # Enable file watching in Docker volumes

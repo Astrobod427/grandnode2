@@ -1,5 +1,6 @@
 @{
     Layout = "_ConfigurePlugin";
+    ViewData["Title"] = "Extended Web API Configuration";
 }
 
 <div class="note note-info">
@@ -41,6 +42,27 @@
             <li><code>GET /api/admin/merchandisereturn/{id}</code> - Get return details</li>
             <li><code>PATCH /api/admin/merchandisereturn/{id}</code> - Update return status/notes</li>
             <li><code>DELETE /api/admin/merchandisereturn/{id}</code> - Delete return</li>
+        </ul>
+
+        <h5>Products</h5>
+        <ul>
+            <li><code>GET /api/admin/product?pageIndex=0&pageSize=50</code> - List all products (paginated)</li>
+            <li><code>GET /api/admin/product/{id}</code> - Get product details</li>
+            <li><code>GET /api/admin/product/search?keywords=...&sku=...</code> - Search products by keyword or SKU</li>
+        </ul>
+
+        <h5>Categories</h5>
+        <ul>
+            <li><code>GET /api/admin/category?pageIndex=0&pageSize=50</code> - List all categories (paginated)</li>
+            <li><code>GET /api/admin/category/{id}</code> - Get category details</li>
+            <li><code>GET /api/admin/category/tree</code> - Get complete category tree hierarchy</li>
+        </ul>
+
+        <h5>Customers</h5>
+        <ul>
+            <li><code>GET /api/admin/customer?pageIndex=0&pageSize=50</code> - List all customers (paginated)</li>
+            <li><code>GET /api/admin/customer/{id}</code> - Get customer details</li>
+            <li><code>GET /api/admin/customer/search?email=...</code> - Search customers by email</li>
         </ul>
     </div>
 </div>
