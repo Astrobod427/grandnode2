@@ -1,5 +1,96 @@
 # Testing Guide - Widgets.ExtendedWebApi
 
+## Authentication Setup
+
+### Backend API Authentication (JWT)
+
+Backend admin endpoints use JWT (JSON Web Token) authentication. Follow these steps to configure:
+
+#### 1. Create API User in MongoDB
+
+First, ensure you have an API user in the database:
+
+```bash
+# Connect to MongoDB
+docker exec -it mongodb_server_dev mongosh grandnode-data
+
+# Check if API user exists
+db.UserApi.find({Email: "francois.gendre@zohomail.com"})
+
+# If not exists, create one through GrandNode Admin Panel:
+# Admin → Configuration → Settings → All Settings → Search for "API"
+```
+
+#### 2. Set API User Password
+
+The API password must be encrypted with TripleDES. Use the helper script:
+
+```bash
+# Run the password setup script
+bash /tmp/setup-api-password.sh
+
+# Or manually encrypt:
+docker exec grandnode_dev sh -c 'cd /app/test && dotnet run "YOUR_PASSWORD"'
+# Copy the encrypted output
+
+# Update in MongoDB:
+docker exec mongodb_server_dev mongosh grandnode-data --quiet --eval "
+db.UserApi.updateOne(
+  {Email: 'francois.gendre@zohomail.com'},
+  {\$set: {Password: 'ENCRYPTED_PASSWORD_HERE'}}
+)"
+```
+
+#### 3. Get JWT Token
+
+```bash
+# Method 1: Using base64-encoded password (recommended)
+curl -X POST http://localhost:5011/Api/Token/Create \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "francois.gendre@zohomail.com",
+    "password": "'$(echo -n 'YOUR_PASSWORD' | base64)'"
+  }'
+
+# Response:
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Method 2: Direct password (if configured)
+curl -X POST http://localhost:5011/Api/Token/Create \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "francois.gendre@zohomail.com",
+    "password": "YOUR_PASSWORD"
+  }'
+
+# Save token for later use:
+export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+#### 4. Verify Token
+
+```bash
+# Test with a simple endpoint
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5011/api/admin/Order
+
+# Should return 200 OK with order data (or empty array if no orders)
+```
+
+### Frontend API Authentication (Session Cookies)
+
+Frontend customer endpoints use session-based authentication:
+
+```bash
+# Login to create session
+curl -X POST http://localhost:5011/login \
+  -c cookies.txt \
+  -d "Email=customer@example.com&Password=password&RememberMe=false"
+
+# Use session cookie for API calls
+curl -b cookies.txt http://localhost:5011/api/my/myorders
+```
+
 ## Quick Start
 
 ### 1. Automated Test Script
@@ -129,6 +220,62 @@ curl -X DELETE \
   http://localhost:5011/api/admin/merchandisereturn/{RETURN_ID}
 ```
 
+#### Products Endpoints
+
+```bash
+# List all products (paginated)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/product?pageIndex=0&pageSize=50" | jq
+
+# Get specific product by ID
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5011/api/admin/product/{PRODUCT_ID} | jq
+
+# Search products by keyword
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/product/search?keywords=shirt&pageSize=20" | jq
+
+# Search products by SKU
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/product/search?sku=SKU-123" | jq
+```
+
+#### Categories Endpoints
+
+```bash
+# List all categories (paginated)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/category?pageIndex=0&pageSize=50" | jq
+
+# Get specific category by ID
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5011/api/admin/category/{CATEGORY_ID} | jq
+
+# Get complete category tree hierarchy
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5011/api/admin/category/tree | jq
+```
+
+#### Customers Endpoints
+
+```bash
+# List all customers (paginated)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/customer?pageIndex=0&pageSize=50" | jq
+
+# Get specific customer by ID
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5011/api/admin/customer/{CUSTOMER_ID} | jq
+
+# Search customers by email
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/customer/search?email=john@example.com" | jq
+
+# Search with filters
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:5011/api/admin/customer?email=john&username=john_doe&pageIndex=0&pageSize=10" | jq
+```
+
 ### Step 3: Test Frontend API (Customer)
 
 Frontend endpoints use session-based authentication (cookies).
@@ -252,6 +399,83 @@ Replace `{ORDER_ID}`, `{SHIPMENT_ID}`, `{RETURN_ID}` in the commands above with 
   "merchandiseReturnStatus": "Approved",
   "pickupDate": "2024-01-20T14:00:00Z",
   "createdOnUtc": "2024-01-18T10:30:00Z"
+}
+```
+
+### Product DTO Example
+
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "name": "Premium Cotton T-Shirt",
+  "shortDescription": "Comfortable cotton t-shirt in multiple colors",
+  "fullDescription": "High-quality 100% cotton t-shirt...",
+  "sku": "TSHIRT-001",
+  "gtin": "1234567890123",
+  "brandId": "507f191e810c19729de860ea",
+  "vendorId": null,
+  "price": 29.99,
+  "oldPrice": 39.99,
+  "catalogPrice": 29.99,
+  "stockQuantity": 150,
+  "published": true,
+  "showOnHomePage": true,
+  "bestSeller": false,
+  "createdOnUtc": "2024-01-15T10:30:00Z",
+  "updatedOnUtc": "2024-01-20T14:00:00Z"
+}
+```
+
+### Category DTO Example
+
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "name": "Electronics",
+  "description": "Electronic devices and accessories",
+  "parentCategoryId": null,
+  "pictureId": "507f191e810c19729de860eb",
+  "published": true,
+  "showOnHomePage": true,
+  "includeInMenu": true,
+  "displayOrder": 1,
+  "createdOnUtc": "2024-01-15T10:30:00Z",
+  "updatedOnUtc": "2024-01-20T14:00:00Z"
+}
+```
+
+### Customer DTO Example
+
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "email": "john.doe@example.com",
+  "username": "john_doe",
+  "active": true,
+  "deleted": false,
+  "isSystemAccount": false,
+  "storeId": "507f191e810c19729de860ea",
+  "createdOnUtc": "2024-01-15T10:30:00Z",
+  "lastActivityDateUtc": "2024-01-20T14:00:00Z"
+}
+```
+
+### Paginated Response Example
+
+All list endpoints (products, categories, customers) return paginated responses:
+
+```json
+{
+  "items": [
+    {
+      "id": "...",
+      "name": "...",
+      ...
+    }
+  ],
+  "pageIndex": 0,
+  "pageSize": 50,
+  "totalCount": 237
 }
 ```
 
