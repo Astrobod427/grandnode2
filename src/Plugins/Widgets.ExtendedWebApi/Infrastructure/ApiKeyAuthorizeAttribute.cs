@@ -11,14 +11,16 @@ namespace Widgets.ExtendedWebApi.Infrastructure;
 public class ApiKeyAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
 {
     private const string API_KEY_HEADER = "X-API-Key";
-    private const string VALID_API_KEY = "labaraque-api-key-2025";
 
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
+        // Get API key from environment variable
+        var validApiKey = Environment.GetEnvironmentVariable("GRANDNODE_API_KEY") ?? "default-api-key-change-me";
+
         // Option 1: Check for API key in header
         if (context.HttpContext.Request.Headers.TryGetValue(API_KEY_HEADER, out var extractedApiKey))
         {
-            if (VALID_API_KEY.Equals(extractedApiKey))
+            if (validApiKey.Equals(extractedApiKey))
             {
                 // API key is valid - allow request
                 return;
