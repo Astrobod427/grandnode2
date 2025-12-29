@@ -68,11 +68,11 @@ public class ExtendedWebApiController : BaseAdminPluginController
     /// <summary>
     /// Simple list all products endpoint for diagnostics - uses repository directly
     /// </summary>
-    [AllowAnonymous]
-    [ApiKeyAuthorize]
     [HttpGet]
     public async Task<IActionResult> ListAllProducts([FromQuery] int pageSize = 100)
     {
+        if (!await _permissionService.Authorize(StandardPermission.ManageProducts))
+            return Forbid();
 
         // Query repository directly
         var products = _productRepository.Table
@@ -135,8 +135,6 @@ public class ExtendedWebApiController : BaseAdminPluginController
     /// <summary>
     /// Search endpoint for the interactive tester - uses repository directly with manual filtering
     /// </summary>
-    [AllowAnonymous]
-    [ApiKeyAuthorize]
     [HttpGet]
     public async Task<IActionResult> SearchProducts(
         [FromQuery] string keywords = "",
@@ -156,6 +154,9 @@ public class ExtendedWebApiController : BaseAdminPluginController
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 50)
     {
+        if (!await _permissionService.Authorize(StandardPermission.ManageProducts))
+            return Forbid();
+
         // Start with all products from repository
         var query = _productRepository.Table.AsQueryable();
 
