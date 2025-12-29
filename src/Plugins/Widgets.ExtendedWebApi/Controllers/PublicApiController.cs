@@ -1,5 +1,6 @@
 using Grand.Data;
 using Grand.Domain.Catalog;
+using Grand.Domain.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Widgets.ExtendedWebApi.DTOs;
@@ -18,10 +19,14 @@ namespace Widgets.ExtendedWebApi.Controllers;
 public class PublicApiController : ControllerBase
 {
     private readonly IRepository<Product> _productRepository;
+    private readonly IRepository<Order> _orderRepository;
 
-    public PublicApiController(IRepository<Product> productRepository)
+    public PublicApiController(
+        IRepository<Product> productRepository,
+        IRepository<Order> orderRepository)
     {
         _productRepository = productRepository;
+        _orderRepository = orderRepository;
     }
 
     [HttpGet("products")]
@@ -117,6 +122,38 @@ public class PublicApiController : ControllerBase
             items = dtos,
             pageIndex,
             pageSize,
+            totalCount
+        });
+    }
+
+    [HttpGet("orders")]
+    public IActionResult ListOrders([FromQuery] int pageSize = 100)
+    {
+        var orders = _orderRepository.Table
+            .OrderByDescending(o => o.CreatedOnUtc)
+            .Take(pageSize)
+            .ToList();
+
+        var totalCount = _orderRepository.Table.Count();
+
+        var dtos = orders.Select(o => new
+        {
+            Id = o.Id,
+            OrderNumber = o.OrderNumber,
+            OrderGuid = o.OrderGuid,
+            CustomerId = o.CustomerId,
+            CustomerEmail = o.CustomerEmail,
+            OrderTotal = o.OrderTotal,
+            OrderStatus = o.OrderStatusId.ToString(),
+            PaymentStatus = o.PaymentStatusId.ToString(),
+            ShippingStatus = o.ShippingStatusId.ToString(),
+            CreatedOnUtc = o.CreatedOnUtc,
+            UpdatedOnUtc = o.UpdatedOnUtc
+        });
+
+        return Ok(new
+        {
+            items = dtos,
             totalCount
         });
     }
