@@ -75,6 +75,45 @@ Authentication: JWT Bearer token (same as standard GrandNode API)
 | PATCH | `/api/admin/merchandisereturn/{id}` | Update return status/notes |
 | DELETE | `/api/admin/merchandisereturn/{id}` | Delete return |
 
+#### Products
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/product` | List all products with pagination |
+| GET | `/api/admin/product/{id}` | Get product details |
+| **GET** | **`/api/admin/product/search`** | **Advanced search with filters** |
+
+**📖 Advanced Product Search**
+
+The `/search` endpoint provides powerful filtering capabilities including:
+- Full-text search across name, description, SKU, and tags
+- Category, brand, and vendor filtering
+- Price range filtering
+- Featured/new/homepage product filtering
+- Multiple sort options (position, name, price, date, best sellers)
+- Pagination support
+
+For detailed documentation with examples, see **[API-SEARCH.md](./API-SEARCH.md)**
+
+**Quick Example:**
+```bash
+GET /api/admin/product/search?keywords=laptop&priceMin=500&priceMax=2000&orderBy=2
+```
+
+#### Categories
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/category` | List all categories with pagination |
+| GET | `/api/admin/category/{id}` | Get category details |
+
+#### Customers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/customer` | List all customers with pagination |
+| GET | `/api/admin/customer/{id}` | Get customer details |
+
 ### Frontend API (Customer)
 
 Base URL: `/api/my/`
