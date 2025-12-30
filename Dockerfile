@@ -25,6 +25,16 @@ RUN for plugin in /app/Plugins/*; do \
 # Publish Web project
 RUN dotnet publish /app/Web/Grand.Web/Grand.Web.csproj -c Release -o ./build/release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH
 
+# Copy module DLLs to published output
+RUN mkdir -p ./build/release/Modules && \
+    for module in /app/Modules/*; do \
+      module_name=$(basename "$module"); \
+      if [ -d "$module/bin/Release" ]; then \
+        cp -r "$module/bin/Release"/*/*.dll ./build/release/ 2>/dev/null || true; \
+        cp -r "$module/bin/Release"/*/*.pdb ./build/release/ 2>/dev/null || true; \
+      fi; \
+    done
+
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
