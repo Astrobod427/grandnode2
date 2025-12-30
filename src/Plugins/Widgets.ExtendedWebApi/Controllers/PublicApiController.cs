@@ -295,4 +295,122 @@ public class PublicApiController : ControllerBase
 
         return "SUCCESS: Both UserApi and Customer records are valid. Add ?password=BASE64_PASSWORD to test password.";
     }
+
+    /// <summary>
+    /// Simulates the exact LoginValidator logic step by step
+    /// Shows which validation rule is failing
+    /// </summary>
+    [HttpPost("test-jwt-validation")]
+    public async Task<IActionResult> TestJwtValidation([FromBody] DTOs.LoginTestDto model)
+    {
+        var steps = new List<object>();
+
+        try
+        {
+            // Step 1: Check if email is provided
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                steps.Add(new { step = 1, rule = "Email required", passed = false, error = "Email is required" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 1, rule = "Email required", passed = true });
+
+            // Step 2: Check if password is provided
+            if (string.IsNullOrEmpty(model.Password))
+            {
+                steps.Add(new { step = 2, rule = "Password required", passed = false, error = "Password is required" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 2, rule = "Password required", passed = true });
+
+            var emailLower = model.Email.ToLowerInvariant();
+
+            // Step 3: Check UserApi and password
+            var userApi = _userApiRepository.Table.FirstOrDefault(x => x.Email == emailLower);
+
+            if (userApi == null)
+            {
+                steps.Add(new { step = 3, rule = "UserApi exists", passed = false, error = "UserApi not found" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            if (!userApi.IsActive)
+            {
+                steps.Add(new { step = 3, rule = "UserApi active", passed = false, error = "UserApi is not active" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            // Try Base64 decode
+            byte[] base64Bytes;
+            string decodedPassword;
+            try
+            {
+                base64Bytes = Convert.FromBase64String(model.Password);
+                decodedPassword = Encoding.UTF8.GetString(base64Bytes);
+                steps.Add(new { step = 3, substep = "Base64 decode", passed = true, decodedLength = decodedPassword.Length });
+            }
+            catch (Exception ex)
+            {
+                steps.Add(new { step = 3, substep = "Base64 decode", passed = false, error = ex.Message });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            // Try password encryption
+            string encryptedPassword;
+            try
+            {
+                encryptedPassword = _encryptionService.EncryptText(decodedPassword, userApi.PrivateKey);
+                steps.Add(new { step = 3, substep = "Password encryption", passed = true });
+            }
+            catch (Exception ex)
+            {
+                steps.Add(new { step = 3, substep = "Password encryption", passed = false, error = ex.Message });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            // Compare passwords
+            var passwordMatch = userApi.Password == encryptedPassword;
+            if (!passwordMatch)
+            {
+                steps.Add(new { step = 3, rule = "Password match", passed = false, error = "Password does not match" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 3, rule = "UserApi validation", passed = true });
+
+            // Step 4: Check Customer
+            var customer = _customerRepository.Table.FirstOrDefault(x => x.Email == emailLower);
+
+            if (customer == null)
+            {
+                steps.Add(new { step = 4, rule = "Customer exists", passed = false, error = "Customer not found" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            if (!customer.Active)
+            {
+                steps.Add(new { step = 4, rule = "Customer active", passed = false, error = "Customer is not active" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            if (customer.IsSystemAccount)
+            {
+                steps.Add(new { step = 4, rule = "Customer not system account", passed = false, error = "Customer is a system account" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            steps.Add(new { step = 4, rule = "Customer validation", passed = true });
+
+            return Ok(new
+            {
+                validationPassed = true,
+                steps,
+                conclusion = "All validation rules passed! JWT should work."
+            });
+        }
+        catch (Exception ex)
+        {
+            steps.Add(new { step = "exception", error = ex.Message, stackTrace = ex.StackTrace });
+            return Ok(new { validationPassed = false, steps, exception = ex.Message });
+        }
+    }
 }
