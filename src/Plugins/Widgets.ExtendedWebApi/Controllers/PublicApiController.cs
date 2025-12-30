@@ -1,3 +1,4 @@
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Business.Core.Interfaces.Customers;
 using Grand.Data;
 using Grand.Domain.Catalog;
@@ -5,6 +6,7 @@ using Grand.Domain.Customers;
 using Grand.Domain.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 using Widgets.ExtendedWebApi.DTOs;
 using Widgets.ExtendedWebApi.Infrastructure;
 
@@ -24,17 +26,20 @@ public class PublicApiController : ControllerBase
     private readonly IRepository<Order> _orderRepository;
     private readonly IRepository<UserApi> _userApiRepository;
     private readonly IRepository<Customer> _customerRepository;
+    private readonly IEncryptionService _encryptionService;
 
     public PublicApiController(
         IRepository<Product> productRepository,
         IRepository<Order> orderRepository,
         IRepository<UserApi> userApiRepository,
-        IRepository<Customer> customerRepository)
+        IRepository<Customer> customerRepository,
+        IEncryptionService encryptionService)
     {
         _productRepository = productRepository;
         _orderRepository = orderRepository;
         _userApiRepository = userApiRepository;
         _customerRepository = customerRepository;
+        _encryptionService = encryptionService;
     }
 
     [HttpGet("products")]
@@ -171,7 +176,7 @@ public class PublicApiController : ControllerBase
     /// Verifies if both UserApi and Customer records exist for an email
     /// </summary>
     [HttpGet("diagnose-jwt")]
-    public IActionResult DiagnoseJwt([FromQuery] string email)
+    public IActionResult DiagnoseJwt([FromQuery] string email, [FromQuery] string password = null)
     {
         if (string.IsNullOrEmpty(email))
             return BadRequest(new { error = "Email parameter is required" });
@@ -186,11 +191,40 @@ public class PublicApiController : ControllerBase
         var customer = _customerRepository.Table
             .FirstOrDefault(x => x.Email == emailLower);
 
+        // Test password if provided
+        bool? passwordMatches = null;
+        string passwordTest = null;
+
+        if (!string.IsNullOrEmpty(password) && userApi != null)
+        {
+            try
+            {
+                // Decode Base64 password
+                var base64EncodedBytes = Convert.FromBase64String(password);
+                var decodedPassword = Encoding.UTF8.GetString(base64EncodedBytes);
+
+                // Encrypt with stored PrivateKey
+                var encryptedPassword = _encryptionService.EncryptText(decodedPassword, userApi.PrivateKey);
+
+                // Compare with stored password
+                passwordMatches = encryptedPassword == userApi.Password;
+
+                passwordTest = passwordMatches.Value
+                    ? "Password matches! JWT should work."
+                    : "Password does NOT match. The password you provided doesn't match the stored encrypted password.";
+            }
+            catch (Exception ex)
+            {
+                passwordTest = $"Password test failed: {ex.Message}";
+            }
+        }
+
         var result = new
         {
             email = email,
             jwtAuthenticationReady = userApi != null && userApi.IsActive &&
-                                     customer != null && customer.Active && !customer.IsSystemAccount,
+                                     customer != null && customer.Active && !customer.IsSystemAccount &&
+                                     (passwordMatches == null || passwordMatches.Value),
             checks = new
             {
                 userApi = new
@@ -207,9 +241,15 @@ public class PublicApiController : ControllerBase
                     isActive = customer?.Active,
                     isSystemAccount = customer?.IsSystemAccount,
                     systemName = customer?.SystemName
+                },
+                passwordValidation = new
+                {
+                    tested = passwordMatches.HasValue,
+                    matches = passwordMatches,
+                    message = passwordMatches.HasValue ? passwordTest : "No password provided for testing. Add ?password=BASE64_ENCODED_PASSWORD to test."
                 }
             },
-            diagnosis = GetDiagnosis(userApi, customer),
+            diagnosis = GetDiagnosis(userApi, customer, passwordMatches, passwordTest),
             instructions = new
             {
                 missingUserApi = userApi == null ?
@@ -221,14 +261,16 @@ public class PublicApiController : ControllerBase
                 inactiveCustomer = customer != null && !customer.Active ?
                     "Activate customer in Admin Panel → Customers" : null,
                 systemAccount = customer != null && customer.IsSystemAccount ?
-                    "Customer is a system account - create a regular customer instead" : null
+                    "Customer is a system account - create a regular customer instead" : null,
+                wrongPassword = passwordMatches.HasValue && !passwordMatches.Value ?
+                    "Update password in Admin Panel → System → API Users → Edit or verify the password you're using" : null
             }
         };
 
         return Ok(result);
     }
 
-    private static string GetDiagnosis(UserApi userApi, Customer customer)
+    private static string GetDiagnosis(UserApi userApi, Customer customer, bool? passwordMatches, string passwordTest)
     {
         if (userApi == null)
             return "FAIL: UserApi record not found. Create API user in admin panel.";
@@ -245,6 +287,12 @@ public class PublicApiController : ControllerBase
         if (customer.IsSystemAccount)
             return "FAIL: Customer is a system account. Create a regular customer instead.";
 
-        return "SUCCESS: Both UserApi and Customer records are valid. JWT authentication should work.";
+        if (passwordMatches.HasValue && !passwordMatches.Value)
+            return "FAIL: Password does not match. Update the API user password or verify the password you're testing.";
+
+        if (passwordMatches.HasValue && passwordMatches.Value)
+            return "SUCCESS: All checks passed including password validation. JWT authentication WILL work!";
+
+        return "SUCCESS: Both UserApi and Customer records are valid. Add ?password=BASE64_PASSWORD to test password.";
     }
 }
