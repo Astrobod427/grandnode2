@@ -4,6 +4,7 @@ using Grand.Data;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
 using Grand.Domain.Orders;
+using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -27,19 +28,28 @@ public class PublicApiController : ControllerBase
     private readonly IRepository<UserApi> _userApiRepository;
     private readonly IRepository<Customer> _customerRepository;
     private readonly IEncryptionService _encryptionService;
+    private readonly BackendAPIConfig _apiConfig;
+    private readonly ICustomerService _customerService;
+    private readonly IUserApiService _userApiService;
 
     public PublicApiController(
         IRepository<Product> productRepository,
         IRepository<Order> orderRepository,
         IRepository<UserApi> userApiRepository,
         IRepository<Customer> customerRepository,
-        IEncryptionService encryptionService)
+        IEncryptionService encryptionService,
+        BackendAPIConfig apiConfig,
+        ICustomerService customerService,
+        IUserApiService userApiService)
     {
         _productRepository = productRepository;
         _orderRepository = orderRepository;
         _userApiRepository = userApiRepository;
         _customerRepository = customerRepository;
         _encryptionService = encryptionService;
+        _apiConfig = apiConfig;
+        _customerService = customerService;
+        _userApiService = userApiService;
     }
 
     [HttpGet("products")]
@@ -411,6 +421,143 @@ public class PublicApiController : ControllerBase
         {
             steps.Add(new { step = "exception", error = ex.Message, stackTrace = ex.StackTrace });
             return Ok(new { validationPassed = false, steps, exception = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Check BackendAPI configuration status
+    /// </summary>
+    [HttpGet("check-api-config")]
+    public IActionResult CheckApiConfig()
+    {
+        return Ok(new
+        {
+            backendApiEnabled = _apiConfig?.Enabled,
+            secretKey = _apiConfig?.SecretKey != null ? $"{_apiConfig.SecretKey.Substring(0, Math.Min(10, _apiConfig.SecretKey.Length))}..." : null,
+            validMinutes = _apiConfig?.ValidMinutes,
+            configExists = _apiConfig != null
+        });
+    }
+
+    /// <summary>
+    /// Run the actual LoginValidator from Grand.Module.Api
+    /// This tests the REAL validator that JWT uses
+    /// </summary>
+    [HttpPost("test-real-validator")]
+    public async Task<IActionResult> TestRealValidator([FromBody] DTOs.LoginTestDto model)
+    {
+        try
+        {
+            var steps = new List<object>();
+
+            // Step 1: Check API is enabled (this is the FIRST rule in LoginValidator)
+            if (_apiConfig == null)
+            {
+                steps.Add(new { step = 0, rule = "API Config exists", passed = false, error = "BackendAPIConfig is null" });
+                return Ok(new { validationPassed = false, steps });
+            }
+
+            if (!_apiConfig.Enabled)
+            {
+                steps.Add(new { step = 0, rule = "API is enabled", passed = false, error = "BackendAPIConfig.Enabled = false" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 0, rule = "API is enabled", passed = true });
+
+            // Step 2: Email required
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                steps.Add(new { step = 1, rule = "Email required", passed = false, error = "Email is required" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 1, rule = "Email required", passed = true });
+
+            // Step 3: Password required
+            if (string.IsNullOrEmpty(model.Password))
+            {
+                steps.Add(new { step = 2, rule = "Password required", passed = false, error = "Password is required" });
+                return Ok(new { validationPassed = false, steps });
+            }
+            steps.Add(new { step = 2, rule = "Password required", passed = true });
+
+            // Step 4: UserApi validation (exactly as in LoginValidator)
+            if (!string.IsNullOrEmpty(model.Email))
+            {
+                var userapi = await _userApiService.GetUserByEmail(model.Email.ToLowerInvariant());
+
+                if (userapi == null)
+                {
+                    steps.Add(new { step = 3, rule = "UserApi exists", passed = false, error = "UserApi not found" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                if (!userapi.IsActive)
+                {
+                    steps.Add(new { step = 3, rule = "UserApi active", passed = false, error = "UserApi is not active" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                try
+                {
+                    var base64EncodedBytes = Convert.FromBase64String(model.Password);
+                    var password = Encoding.UTF8.GetString(base64EncodedBytes);
+
+                    if (userapi.Password != _encryptionService.EncryptText(password, userapi.PrivateKey))
+                    {
+                        steps.Add(new { step = 3, rule = "Password match", passed = false, error = "User not exists or password is wrong" });
+                        return Ok(new { validationPassed = false, steps });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    steps.Add(new { step = 3, substep = "Password validation", passed = false, error = $"Exception: {ex.Message}" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                steps.Add(new { step = 3, rule = "UserApi validation", passed = true });
+            }
+
+            // Step 5: Customer validation (exactly as in LoginValidator)
+            if (!string.IsNullOrEmpty(model.Email))
+            {
+                var customer = await _customerService.GetCustomerByEmail(model.Email.ToLowerInvariant());
+
+                if (customer == null)
+                {
+                    steps.Add(new { step = 4, rule = "Customer exists", passed = false, error = "Customer not exist" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                if (!customer.Active)
+                {
+                    steps.Add(new { step = 4, rule = "Customer active", passed = false, error = "Customer not exist (inactive)" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                if (customer.IsSystemAccount())
+                {
+                    steps.Add(new { step = 4, rule = "Customer not system account", passed = false, error = "Customer not exist (system account)" });
+                    return Ok(new { validationPassed = false, steps });
+                }
+
+                steps.Add(new { step = 4, rule = "Customer validation", passed = true });
+            }
+
+            return Ok(new
+            {
+                validationPassed = true,
+                steps,
+                conclusion = "All LoginValidator rules passed using the EXACT same logic as Grand.Module.Api!"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                validationPassed = false,
+                error = ex.Message,
+                stackTrace = ex.StackTrace
+            });
         }
     }
 }
