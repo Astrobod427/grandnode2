@@ -4,7 +4,6 @@ using Grand.Data;
 using Grand.Domain.Catalog;
 using Grand.Domain.Customers;
 using Grand.Domain.Orders;
-using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -28,7 +27,6 @@ public class PublicApiController : ControllerBase
     private readonly IRepository<UserApi> _userApiRepository;
     private readonly IRepository<Customer> _customerRepository;
     private readonly IEncryptionService _encryptionService;
-    private readonly BackendAPIConfig _apiConfig;
     private readonly ICustomerService _customerService;
     private readonly IUserApiService _userApiService;
 
@@ -38,7 +36,6 @@ public class PublicApiController : ControllerBase
         IRepository<UserApi> userApiRepository,
         IRepository<Customer> customerRepository,
         IEncryptionService encryptionService,
-        BackendAPIConfig apiConfig,
         ICustomerService customerService,
         IUserApiService userApiService)
     {
@@ -47,7 +44,6 @@ public class PublicApiController : ControllerBase
         _userApiRepository = userApiRepository;
         _customerRepository = customerRepository;
         _encryptionService = encryptionService;
-        _apiConfig = apiConfig;
         _customerService = customerService;
         _userApiService = userApiService;
     }
@@ -425,17 +421,20 @@ public class PublicApiController : ControllerBase
     }
 
     /// <summary>
-    /// Check BackendAPI configuration status
+    /// Check if diagnostic services are available
     /// </summary>
     [HttpGet("check-api-config")]
     public IActionResult CheckApiConfig()
     {
         return Ok(new
         {
-            backendApiEnabled = _apiConfig?.Enabled,
-            secretKey = _apiConfig?.SecretKey != null ? $"{_apiConfig.SecretKey.Substring(0, Math.Min(10, _apiConfig.SecretKey.Length))}..." : null,
-            validMinutes = _apiConfig?.ValidMinutes,
-            configExists = _apiConfig != null
+            message = "Diagnostic endpoint active",
+            servicesAvailable = new
+            {
+                customerService = _customerService != null,
+                userApiService = _userApiService != null,
+                encryptionService = _encryptionService != null
+            }
         });
     }
 
@@ -450,21 +449,7 @@ public class PublicApiController : ControllerBase
         {
             var steps = new List<object>();
 
-            // Step 1: Check API is enabled (this is the FIRST rule in LoginValidator)
-            if (_apiConfig == null)
-            {
-                steps.Add(new { step = 0, rule = "API Config exists", passed = false, error = "BackendAPIConfig is null" });
-                return Ok(new { validationPassed = false, steps });
-            }
-
-            if (!_apiConfig.Enabled)
-            {
-                steps.Add(new { step = 0, rule = "API is enabled", passed = false, error = "BackendAPIConfig.Enabled = false" });
-                return Ok(new { validationPassed = false, steps });
-            }
-            steps.Add(new { step = 0, rule = "API is enabled", passed = true });
-
-            // Step 2: Email required
+            // Step 1: Email required
             if (string.IsNullOrEmpty(model.Email))
             {
                 steps.Add(new { step = 1, rule = "Email required", passed = false, error = "Email is required" });
