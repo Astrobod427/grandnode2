@@ -3,7 +3,6 @@ using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Business.Core.Interfaces.Checkout.Orders;
 using Grand.Domain.Orders;
 using Grand.Infrastructure;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Widgets.ExtendedWebApi.DTOs;
 
@@ -11,12 +10,9 @@ namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
 /// Shopping Cart API endpoints for mobile applications.
+/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
+/// Route: /api/mobile/ShoppingCart
 /// </summary>
-/// <remarks>
-/// Provides full shopping cart management: view, add, update, remove items.
-/// Requires Bearer JWT authentication from /Api/Token/Create.
-/// </remarks>
-[Tags("Shopping Cart")]
 public class ShoppingCartController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
@@ -39,12 +35,7 @@ public class ShoppingCartController : BaseMobileApiController
     /// <summary>
     /// Get current customer's shopping cart
     /// </summary>
-    /// <returns>Shopping cart with all items, prices, and totals</returns>
-    /// <response code="200">Returns the shopping cart</response>
-    /// <response code="401">If the user is not authenticated</response>
     [HttpGet]
-    [ProducesResponseType(typeof(ShoppingCartDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -102,17 +93,7 @@ public class ShoppingCartController : BaseMobileApiController
     /// <summary>
     /// Add a product to the shopping cart
     /// </summary>
-    /// <param name="request">Product and quantity to add</param>
-    /// <returns>Result with added item details</returns>
-    /// <response code="200">Product added successfully</response>
-    /// <response code="400">Invalid request or product warnings</response>
-    /// <response code="401">Not authenticated</response>
-    /// <response code="404">Product not found</response>
     [HttpPost]
-    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Add([FromBody] AddToCartRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.ProductId))
@@ -179,18 +160,7 @@ public class ShoppingCartController : BaseMobileApiController
     /// <summary>
     /// Update shopping cart item quantity
     /// </summary>
-    /// <param name="itemId">Cart item ID</param>
-    /// <param name="request">New quantity</param>
-    /// <returns>Updated item details</returns>
-    /// <response code="200">Item updated successfully</response>
-    /// <response code="400">Invalid quantity or product warnings</response>
-    /// <response code="401">Not authenticated</response>
-    /// <response code="404">Cart item not found</response>
     [HttpPut("{itemId}")]
-    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(string itemId, [FromBody] UpdateCartItemRequest request)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -263,17 +233,7 @@ public class ShoppingCartController : BaseMobileApiController
     /// <summary>
     /// Remove an item from the shopping cart
     /// </summary>
-    /// <param name="itemId">Cart item ID to remove</param>
-    /// <returns>Success confirmation</returns>
-    /// <response code="200">Item removed successfully</response>
-    /// <response code="400">Invalid item ID</response>
-    /// <response code="401">Not authenticated</response>
-    /// <response code="404">Cart item not found</response>
     [HttpDelete("{itemId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string itemId)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -300,12 +260,7 @@ public class ShoppingCartController : BaseMobileApiController
     /// <summary>
     /// Clear all items from the shopping cart
     /// </summary>
-    /// <returns>Success confirmation</returns>
-    /// <response code="200">Cart cleared successfully</response>
-    /// <response code="401">Not authenticated</response>
     [HttpDelete]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Clear()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -325,14 +280,9 @@ public class ShoppingCartController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Get cart items count (quick summary for badge display)
+    /// Get cart items count (quick summary)
     /// </summary>
-    /// <returns>Item count and total quantity</returns>
-    /// <response code="200">Returns cart count</response>
-    /// <response code="401">Not authenticated</response>
     [HttpGet("count")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCount()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;

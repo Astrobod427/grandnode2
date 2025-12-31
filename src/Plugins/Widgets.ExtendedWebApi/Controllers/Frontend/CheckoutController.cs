@@ -11,7 +11,6 @@ using Grand.Domain.Shipping;
 using Grand.Infrastructure;
 using Grand.Infrastructure.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Widgets.ExtendedWebApi.DTOs;
 
@@ -19,12 +18,9 @@ namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
 /// Checkout API endpoints for mobile applications.
+/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
+/// Route: /api/mobile/Checkout
 /// </summary>
-/// <remarks>
-/// Complete checkout flow: summary, addresses, payment/shipping options, place order.
-/// Requires Bearer JWT authentication from /Api/Token/Create.
-/// </remarks>
-[Tags("Checkout")]
 public class CheckoutController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
@@ -60,20 +56,9 @@ public class CheckoutController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Get complete checkout summary
+    /// Get checkout summary including cart, totals, addresses, and available options
     /// </summary>
-    /// <remarks>
-    /// Returns everything needed for checkout: cart items, totals, addresses,
-    /// available payment methods, and shipping options.
-    /// </remarks>
-    /// <returns>Complete checkout state</returns>
-    /// <response code="200">Checkout summary</response>
-    /// <response code="400">Cart is empty</response>
-    /// <response code="401">Not authenticated</response>
     [HttpGet]
-    [ProducesResponseType(typeof(CheckoutSummaryDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetSummary()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -244,19 +229,7 @@ public class CheckoutController : BaseMobileApiController
     /// <summary>
     /// Place an order
     /// </summary>
-    /// <remarks>
-    /// Creates an order from the current shopping cart.
-    /// Requires billing address, and shipping address if cart requires shipping.
-    /// </remarks>
-    /// <param name="request">Order details including payment and shipping method</param>
-    /// <returns>Order confirmation with order ID and number</returns>
-    /// <response code="200">Order placed successfully</response>
-    /// <response code="400">Validation error or order placement failed</response>
-    /// <response code="401">Not authenticated</response>
     [HttpPost]
-    [ProducesResponseType(typeof(PlaceOrderResultDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(PlaceOrderResultDto), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderRequest request)
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -357,14 +330,9 @@ public class CheckoutController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Get customer's saved addresses
+    /// Get customer addresses
     /// </summary>
-    /// <returns>List of addresses with current billing/shipping selection</returns>
-    /// <response code="200">Returns address list</response>
-    /// <response code="401">Not authenticated</response>
     [HttpGet("addresses")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult GetAddresses()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -396,17 +364,9 @@ public class CheckoutController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Set billing address for checkout
+    /// Set billing address
     /// </summary>
-    /// <param name="addressId">Address ID from customer's address book</param>
-    /// <returns>Success confirmation</returns>
-    /// <response code="200">Address set successfully</response>
-    /// <response code="401">Not authenticated</response>
-    /// <response code="404">Address not found</response>
     [HttpPost("billing-address/{addressId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetBillingAddress(string addressId)
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -424,17 +384,9 @@ public class CheckoutController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Set shipping address for checkout
+    /// Set shipping address
     /// </summary>
-    /// <param name="addressId">Address ID from customer's address book</param>
-    /// <returns>Success confirmation</returns>
-    /// <response code="200">Address set successfully</response>
-    /// <response code="401">Not authenticated</response>
-    /// <response code="404">Address not found</response>
     [HttpPost("shipping-address/{addressId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetShippingAddress(string addressId)
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;

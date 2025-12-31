@@ -3,8 +3,6 @@
     <PropertyGroup>
         <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
         <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -43,8 +41,6 @@
         <PackageReference Include="Microsoft.AspNetCore.OData">
             <Private>true</Private>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-        <PackageReference Include="Scalar.AspNetCore" />
         <PackageReference Include="AutoMapper" />
     </ItemGroup>
 
