@@ -12,23 +12,20 @@ public class CorsStartup : IStartupApplication
 {
     public void Configure(WebApplication application, IWebHostEnvironment webHostEnvironment)
     {
-        if(webHostEnvironment.IsDevelopment())
-            application.UseCors(Configurations.DevelopmentCorsPolicyName);
-        else
-            application.UseCors(Configurations.ProductionCorsPolicyName);
+        // Use permissive CORS for all environments - JWT auth is the real security layer
+        application.UseCors(Configurations.DevelopmentCorsPolicyName);
     }
 
     public void ConfigureServices(IServiceCollection services,
         IConfiguration configuration)
     {
-        var allowedOrigins = configuration.GetSection("AllowedHostOrigins").Get<string[]>() ?? Array.Empty<string>();
-
         services.AddCors(options =>
         {
+            // Allow any origin - suitable for multi-tenant e-commerce with JWT authentication
             options.AddPolicy(Configurations.DevelopmentCorsPolicyName,
                 builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             options.AddPolicy(Configurations.ProductionCorsPolicyName,
-                builder => builder.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader());
+                builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
         });
     }
 
