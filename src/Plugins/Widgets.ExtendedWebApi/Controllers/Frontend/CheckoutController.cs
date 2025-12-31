@@ -17,10 +17,11 @@ using Widgets.ExtendedWebApi.DTOs;
 namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
-/// Checkout API endpoints for mobile applications
-/// Requires JWT authentication (FrontAuthentication)
+/// Checkout API endpoints for mobile applications.
+/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
+/// Route: /api/mobile/Checkout
 /// </summary>
-public class CheckoutController : BaseFrontendApiController
+public class CheckoutController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
     private readonly IOrderCalculationService _orderCalculationService;

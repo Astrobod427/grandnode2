@@ -9,10 +9,11 @@ using Widgets.ExtendedWebApi.DTOs;
 namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
-/// Shopping Cart API endpoints for mobile applications
-/// Requires JWT authentication (FrontAuthentication)
+/// Shopping Cart API endpoints for mobile applications.
+/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
+/// Route: /api/mobile/ShoppingCart
 /// </summary>
-public class ShoppingCartController : BaseFrontendApiController
+public class ShoppingCartController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
     private readonly IProductService _productService;

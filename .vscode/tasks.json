@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker: Démarrer Grandnode (Build & Run)",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.dev.yml up --build",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": ".*",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Attaching to grandnode_dev",
+                    "endsPattern": "Now listening on: http://0.0.0.0:8080"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Docker: Arrêter Grandnode",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.dev.yml down -v",
+            "group": "build"
+        }
+    ]
+}

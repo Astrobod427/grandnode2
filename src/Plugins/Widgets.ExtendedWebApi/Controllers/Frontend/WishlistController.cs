@@ -9,10 +9,11 @@ using Widgets.ExtendedWebApi.DTOs;
 namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
-/// Wishlist API endpoints for mobile applications
-/// Requires JWT authentication (FrontAuthentication)
+/// Wishlist API endpoints for mobile applications.
+/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
+/// Route: /api/mobile/Wishlist
 /// </summary>
-public class WishlistController : BaseFrontendApiController
+public class WishlistController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
     private readonly IProductService _productService;
