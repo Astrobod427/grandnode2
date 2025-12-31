@@ -7,9 +7,9 @@ namespace Widgets.ExtendedWebApi.Controllers;
 
 /// <summary>
 /// Base controller for mobile API endpoints.
-/// Accepts both Bearer (admin JWT) and FrontAuthentication (customer JWT) tokens.
+/// Uses Bearer (admin JWT) authentication - same token as /Api/Token/Create.
 /// </summary>
-[Authorize(AuthenticationSchemes = $"{JwtBearerDefaults.AuthenticationScheme},FrontAuthentication")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ServiceFilter(typeof(ModelValidationAttribute))]
 [Route("api/mobile/[controller]")]
 [ApiExplorerSettings(IgnoreApi = false, GroupName = "v2")]
