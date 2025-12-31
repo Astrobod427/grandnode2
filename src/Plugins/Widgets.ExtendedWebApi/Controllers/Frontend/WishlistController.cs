@@ -3,6 +3,7 @@ using Grand.Business.Core.Interfaces.Catalog.Products;
 using Grand.Business.Core.Interfaces.Checkout.Orders;
 using Grand.Domain.Orders;
 using Grand.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Widgets.ExtendedWebApi.DTOs;
 
@@ -10,9 +11,12 @@ namespace Widgets.ExtendedWebApi.Controllers.Frontend;
 
 /// <summary>
 /// Wishlist API endpoints for mobile applications.
-/// Accepts both Bearer (admin API) and FrontAuthentication (customer API) tokens.
-/// Route: /api/mobile/Wishlist
 /// </summary>
+/// <remarks>
+/// Manage customer wishlists: view, add, remove items, move to cart.
+/// Requires Bearer JWT authentication from /Api/Token/Create.
+/// </remarks>
+[Tags("Wishlist")]
 public class WishlistController : BaseMobileApiController
 {
     private readonly IShoppingCartService _shoppingCartService;
@@ -35,7 +39,12 @@ public class WishlistController : BaseMobileApiController
     /// <summary>
     /// Get current customer's wishlist
     /// </summary>
+    /// <returns>Wishlist with all items</returns>
+    /// <response code="200">Returns the wishlist</response>
+    /// <response code="401">Not authenticated</response>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Get()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -84,7 +93,17 @@ public class WishlistController : BaseMobileApiController
     /// <summary>
     /// Add a product to the wishlist
     /// </summary>
+    /// <param name="request">Product to add</param>
+    /// <returns>Result with added item details</returns>
+    /// <response code="200">Product added successfully</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="404">Product not found</response>
     [HttpPost]
+    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Add([FromBody] AddToCartRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.ProductId))
@@ -150,7 +169,17 @@ public class WishlistController : BaseMobileApiController
     /// <summary>
     /// Remove an item from the wishlist
     /// </summary>
+    /// <param name="itemId">Wishlist item ID</param>
+    /// <returns>Success confirmation</returns>
+    /// <response code="200">Item removed</response>
+    /// <response code="400">Invalid item ID</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="404">Item not found</response>
     [HttpDelete("{itemId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string itemId)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -177,7 +206,17 @@ public class WishlistController : BaseMobileApiController
     /// <summary>
     /// Move an item from wishlist to shopping cart
     /// </summary>
+    /// <param name="itemId">Wishlist item ID to move</param>
+    /// <returns>Result with cart item details</returns>
+    /// <response code="200">Item moved to cart</response>
+    /// <response code="400">Invalid item ID or move failed</response>
+    /// <response code="401">Not authenticated</response>
+    /// <response code="404">Wishlist item not found</response>
     [HttpPost("{itemId}/move-to-cart")]
+    [ProducesResponseType(typeof(CartOperationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MoveToCart(string itemId)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -244,7 +283,12 @@ public class WishlistController : BaseMobileApiController
     /// <summary>
     /// Clear all items from the wishlist
     /// </summary>
+    /// <returns>Success confirmation</returns>
+    /// <response code="200">Wishlist cleared</response>
+    /// <response code="401">Not authenticated</response>
     [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Clear()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
@@ -264,9 +308,14 @@ public class WishlistController : BaseMobileApiController
     }
 
     /// <summary>
-    /// Get wishlist items count
+    /// Get wishlist items count (for badge display)
     /// </summary>
+    /// <returns>Number of items in wishlist</returns>
+    /// <response code="200">Returns item count</response>
+    /// <response code="401">Not authenticated</response>
     [HttpGet("count")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCount()
     {
         var customer = _contextAccessor.WorkContext.CurrentCustomer;
