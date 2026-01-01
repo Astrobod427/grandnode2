@@ -82,4 +82,4 @@
     <PackageVersion Update="Aspire.Dashboard.Sdk.linux-x64" Version="9.1.0" />
     <PackageVersion Update="Aspire.Hosting.Orchestration.linux-x64" Version="9.1.0" />
   </ItemGroup>
-</Project>
+</Project># Cache bust: 1767232023
