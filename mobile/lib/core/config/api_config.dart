@@ -9,7 +9,7 @@ class ApiConfig {
   // Mobile API endpoints (require JWT auth)
   static const String cartEndpoint = '/api/mobile/ShoppingCart';
   static const String wishlistEndpoint = '/api/mobile/Wishlist';
-  static const String checkoutEndpoint = '/api/mobile/Checkout';
+  static const String checkoutEndpoint = '/api/my/Checkout';
 
   // Public catalog endpoints (no auth required)
   static const String catalogProductsEndpoint = '/api/mobile/Catalog/products';

@@ -30,6 +30,10 @@ services:
         # 💥 COMMANDE CLÉ : Build la solution complète puis watch sur Grand.Web
         command: >
             sh -c "
+            echo '🧹 Cleaning static web assets cache to avoid path conflicts...' &&
+            find . -path '*/Grand.SharedUIResources/obj/Debug/net9.0/staticwebassets*' -delete 2>/dev/null || true &&
+            find . -path '*/Grand.Web.Admin/obj/Debug/net9.0/staticwebassets*' -delete 2>/dev/null || true &&
+            find . -path '*/Grand.Web.Vendor/obj/Debug/net9.0/staticwebassets*' -delete 2>/dev/null || true &&
             echo '🔧 Building complete solution (including all plugins)...' &&
             dotnet build GrandNode.sln -c Debug &&
             echo '✅ Solution built successfully' &&

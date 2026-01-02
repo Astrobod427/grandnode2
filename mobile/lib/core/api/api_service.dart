@@ -158,6 +158,40 @@ class ApiService {
       'quantity': quantity,
     }, requiresAuth: true);
   }
+
+  // Checkout methods (requires auth)
+  Future<Map<String, dynamic>> getCheckoutSummary() async {
+    final result = await get(ApiConfig.checkoutEndpoint, requiresAuth: true);
+    return result as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getAddresses() async {
+    final result = await get('${ApiConfig.checkoutEndpoint}/addresses', requiresAuth: true);
+    return result as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> setBillingAddress(String addressId) async {
+    return post('${ApiConfig.checkoutEndpoint}/billing-address/$addressId', {}, requiresAuth: true);
+  }
+
+  Future<Map<String, dynamic>> setShippingAddress(String addressId) async {
+    return post('${ApiConfig.checkoutEndpoint}/shipping-address/$addressId', {}, requiresAuth: true);
+  }
+
+  Future<Map<String, dynamic>> placeOrder({
+    required String paymentMethodSystemName,
+    String? shippingOptionName,
+    String? shippingRateProviderSystemName,
+    bool useLoyaltyPoints = false,
+  }) async {
+    return post(ApiConfig.checkoutEndpoint, {
+      'paymentMethodSystemName': paymentMethodSystemName,
+      if (shippingOptionName != null) 'shippingOptionName': shippingOptionName,
+      if (shippingRateProviderSystemName != null)
+        'shippingRateProviderSystemName': shippingRateProviderSystemName,
+      'useLoyaltyPoints': useLoyaltyPoints,
+    }, requiresAuth: true);
+  }
 }
 
 class ApiException implements Exception {

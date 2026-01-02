@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/api/api_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/checkout_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home/home_screen.dart';
@@ -50,6 +51,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ProductProvider(apiService: apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CheckoutProvider(apiService: apiService),
         ),
       ],
       child: Consumer<ThemeProvider>(
