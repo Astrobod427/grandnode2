@@ -337,7 +337,7 @@ class _CategoriesHorizontal extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 110,
+          height: 120,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -365,6 +365,7 @@ class _CategoriesHorizontal extends StatelessWidget {
                   width: 90,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Image circle
                       Container(
@@ -403,14 +404,16 @@ class _CategoriesHorizontal extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       // Name
-                      Text(
-                        catName,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                      Flexible(
+                        child: Text(
+                          catName,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
