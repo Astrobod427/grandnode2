@@ -17,5 +17,5 @@ list(APPEND FLUTTER_TOOL_ENVIRONMENT
   "TRACK_WIDGET_CREATION=true"
   "TREE_SHAKE_ICONS=false"
   "PACKAGE_CONFIG=/home/user/projects/dev/grandnode2/mobile/.dart_tool/package_config.json"
-  "FLUTTER_TARGET=/home/user/projects/dev/grandnode2/mobile/lib/main.dart"
+  "FLUTTER_TARGET=lib/main.dart"
 )

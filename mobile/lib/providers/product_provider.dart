@@ -2,41 +2,36 @@ import 'package:flutter/foundation.dart';
 import '../core/api/api_service.dart';
 import '../core/config/api_config.dart';
 import '../models/product.dart';
-import '../models/category.dart' as models;
 
 class ProductProvider extends ChangeNotifier {
-  final ApiService _apiService;
+  final ApiService apiService;
 
   List<Product> _products = [];
   List<Product> _featuredProducts = [];
-  List<models.Category> _categories = [];
+  List<Map<String, dynamic>> _categories = [];
   Product? _selectedProduct;
   bool _isLoading = false;
-  String? _errorMessage;
+  String? _error;
   int _totalCount = 0;
   int _currentPage = 0;
   bool _hasMore = true;
 
-  ProductProvider({ApiService? apiService})
-      : _apiService = apiService ?? ApiService();
+  ProductProvider({required this.apiService});
 
   List<Product> get products => _products;
   List<Product> get featuredProducts => _featuredProducts;
-  List<models.Category> get categories => _categories;
+  List<Map<String, dynamic>> get categories => _categories;
   Product? get selectedProduct => _selectedProduct;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  String? get error => _error;
   int get totalCount => _totalCount;
   bool get hasMore => _hasMore;
 
   Future<void> loadCategories() async {
     try {
-      final response = await _apiService.get(ApiConfig.catalogCategoriesEndpoint);
-
-      if (response != null && response is List) {
-        _categories = response
-            .map<models.Category>((json) => models.Category.fromJson(json))
-            .toList();
+      final response = await apiService.get(ApiConfig.catalogCategoriesEndpoint);
+      if (response != null && response['items'] != null) {
+        _categories = List<Map<String, dynamic>>.from(response['items']);
         notifyListeners();
       }
     } catch (e) {
@@ -44,15 +39,28 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadProducts({
-    String? categoryId,
-    String? keywords,
-    double? priceMin,
-    double? priceMax,
-    bool featuredOnly = false,
-    int orderBy = 0,
-    bool refresh = false,
-  }) async {
+  Future<void> loadFeaturedProducts() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await apiService.getFeaturedProducts(limit: 10);
+      if (response['items'] != null) {
+        _featuredProducts = (response['items'] as List)
+            .map<Product>((json) => Product.fromJson(json))
+            .toList();
+      }
+    } catch (e) {
+      _error = 'Erreur de chargement';
+      debugPrint('Error loading featured products: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadProductsByCategory(String categoryId, {bool refresh = false}) async {
     if (refresh) {
       _currentPage = 0;
       _products = [];
@@ -62,31 +70,22 @@ class ProductProvider extends ChangeNotifier {
     if (!_hasMore || _isLoading) return;
 
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
-      final queryParams = <String, String>{
-        'pageIndex': _currentPage.toString(),
-        'pageSize': '20',
-        'orderBy': orderBy.toString(),
-      };
-
-      if (categoryId != null) queryParams['categoryId'] = categoryId;
-      if (keywords != null && keywords.isNotEmpty) queryParams['keywords'] = keywords;
-      if (priceMin != null) queryParams['priceMin'] = priceMin.toString();
-      if (priceMax != null) queryParams['priceMax'] = priceMax.toString();
-      if (featuredOnly) queryParams['featuredOnly'] = 'true';
-
-      final response = await _apiService.get(
-        ApiConfig.catalogProductsEndpoint,
-        queryParams: queryParams,
+      final response = await apiService.getProductsByCategory(
+        categoryId,
+        page: _currentPage,
+        pageSize: 20,
       );
 
-      if (response != null) {
+      if (response['items'] != null) {
+        final newProducts = (response['items'] as List)
+            .map<Product>((json) => Product.fromJson(json))
+            .toList();
+
         _totalCount = response['totalCount'] ?? 0;
-        final items = response['items'] as List? ?? [];
-        final newProducts = items.map<Product>((json) => Product.fromJson(json)).toList();
 
         if (refresh) {
           _products = newProducts;
@@ -97,10 +96,8 @@ class ProductProvider extends ChangeNotifier {
         _currentPage++;
         _hasMore = _products.length < _totalCount;
       }
-    } on ApiException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
-      _errorMessage = 'Erreur de chargement des produits';
+      _error = 'Erreur de chargement';
       debugPrint('Error loading products: $e');
     }
 
@@ -108,64 +105,83 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadFeaturedProducts() async {
-    try {
-      final response = await _apiService.get(
-        ApiConfig.catalogFeaturedEndpoint,
-        queryParams: {'limit': '10'},
-      );
-
-      if (response != null && response is List) {
-        _featuredProducts = response
-            .map<Product>((json) => Product.fromJson(json))
-            .toList();
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('Error loading featured products: $e');
+  Future<void> searchProducts(String query, {bool refresh = true}) async {
+    if (query.length < 2) {
+      _products = [];
+      _totalCount = 0;
+      notifyListeners();
+      return;
     }
-  }
 
-  Future<void> loadProductDetails(String productId) async {
+    if (refresh) {
+      _currentPage = 0;
+      _products = [];
+      _hasMore = true;
+    }
+
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
-      final response = await _apiService.get(
-        '${ApiConfig.catalogProductsEndpoint}/$productId',
+      final response = await apiService.searchProducts(
+        query,
+        page: _currentPage,
+        pageSize: 20,
       );
 
-      if (response != null) {
-        _selectedProduct = Product.fromJson(response);
+      if (response['items'] != null) {
+        final newProducts = (response['items'] as List)
+            .map<Product>((json) => Product.fromJson(json))
+            .toList();
+
+        _totalCount = response['totalCount'] ?? 0;
+
+        if (refresh) {
+          _products = newProducts;
+        } else {
+          _products.addAll(newProducts);
+        }
+
+        _currentPage++;
+        _hasMore = _products.length < _totalCount;
       }
-    } on ApiException catch (e) {
-      _errorMessage = e.message;
     } catch (e) {
-      _errorMessage = 'Erreur de chargement du produit';
+      _error = 'Erreur de recherche';
+      debugPrint('Error searching products: $e');
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> searchProducts(String query) async {
-    if (query.length < 2) {
-      _products = [];
-      notifyListeners();
-      return;
+  Future<void> loadProductDetails(String productId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await apiService.getProductDetails(productId);
+      _selectedProduct = Product.fromJson(response);
+    } catch (e) {
+      _error = 'Erreur de chargement du produit';
+      debugPrint('Error loading product: $e');
     }
 
-    await loadProducts(keywords: query, refresh: true);
+    _isLoading = false;
+    notifyListeners();
   }
 
-  void clearSelectedProduct() {
-    _selectedProduct = null;
+  void clearProducts() {
+    _products = [];
+    _currentPage = 0;
+    _hasMore = true;
+    _totalCount = 0;
     notifyListeners();
   }
 
   void clearError() {
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
   }
 }
