@@ -159,8 +159,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ? () async {
                           final success = await checkout.placeOrder();
                           if (success && mounted) {
-                            // Refresh cart
-                            context.read<CartProvider>().loadCart();
+                            // Clear cart after successful order
+                            context.read<CartProvider>().clearCart();
                           }
                         }
                       : null,
