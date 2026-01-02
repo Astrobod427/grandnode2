@@ -2,6 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0
 LABEL stage=dev-env
 WORKDIR /app
+
+# Install Aspire workload (required for Aspire.AppHost project)
+RUN dotnet workload install aspire
+
 RUN echo '#!/bin/sh\nfind /app -type d \\( -name "bin" -o -name "obj" \\) -exec rm -rf {} + 2>/dev/null || true' > /clean.sh && chmod +x /clean.sh
 # La commande 'dotnet watch' lancée par docker-compose se chargera du reste.
 # Le code sera monté via le volume.
