@@ -34,6 +34,15 @@ RUN for module in /app/Modules/*; do \
       fi; \
     done
 
+# Copy plugin DLLs to published output in correct folder structure
+RUN for plugin in /app/Plugins/*; do \
+      plugin_name=$(basename "$plugin"); \
+      if [ -d "$plugin/bin/Release" ]; then \
+        mkdir -p "./build/release/Plugins/$plugin_name"; \
+        cp -r "$plugin/bin/Release"/*/* "./build/release/Plugins/$plugin_name/" 2>/dev/null || true; \
+      fi; \
+    done
+
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
