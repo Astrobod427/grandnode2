@@ -25,7 +25,6 @@ public class AccountController : ControllerBase
     private readonly ICustomerService _customerService;
     private readonly ICustomerManagerService _customerManagerService;
     private readonly IGroupService _groupService;
-    private readonly IStoreContext _storeContext;
     private readonly ISettingService _settingService;
     private readonly JwtTokenGenerator _jwtTokenGenerator;
 
@@ -33,14 +32,12 @@ public class AccountController : ControllerBase
         ICustomerService customerService,
         ICustomerManagerService customerManagerService,
         IGroupService groupService,
-        IStoreContext storeContext,
         ISettingService settingService,
         IConfiguration configuration)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
-        _storeContext = storeContext;
         _settingService = settingService;
         _jwtTokenGenerator = new JwtTokenGenerator(configuration);
     }
@@ -151,8 +148,8 @@ public class AccountController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "Password is required" });
 
-        // Load customer settings dynamically
-        var customerSettings = await _settingService.LoadSetting<CustomerSettings>(_storeContext.CurrentStore.Id);
+        // Load customer settings dynamically (empty storeId = default store)
+        var customerSettings = await _settingService.LoadSetting<CustomerSettings>("");
 
         // Check if registration is allowed
         if (customerSettings.UserRegistrationType == UserRegistrationType.Disabled)
@@ -220,7 +217,7 @@ public class AccountController : ControllerBase
                 request.Email,
                 password,
                 customerSettings.DefaultPasswordFormat,
-                _storeContext.CurrentStore.Id,
+                "", // Use default store
                 isApproved
             );
 
