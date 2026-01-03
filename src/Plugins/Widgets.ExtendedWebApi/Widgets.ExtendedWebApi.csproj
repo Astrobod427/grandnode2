@@ -31,6 +31,9 @@
         <ProjectReference Include="..\..\Core\Grand.SharedKernel\Grand.SharedKernel.csproj">
             <Private>false</Private>
         </ProjectReference>
+        <ProjectReference Include="..\..\Modules\Grand.Module.Api\Grand.Module.Api.csproj">
+            <Private>false</Private>
+        </ProjectReference>
         <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj">
             <Private>false</Private>
             <ExcludeAssets>all</ExcludeAssets>
