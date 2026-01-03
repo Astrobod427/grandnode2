@@ -22,6 +22,9 @@ RUN for plugin in /app/Plugins/*; do \
   dotnet build "$plugin" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
   done
 
+# Remove old plugins from Web directory (they will be copied back after publish)
+RUN rm -rf /app/Web/Grand.Web/Plugins/*
+
 # Publish Web project
 RUN dotnet publish /app/Web/Grand.Web/Grand.Web.csproj -c Release -o ./build/release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH
 
