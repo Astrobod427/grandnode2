@@ -46,6 +46,16 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Test endpoint to verify controller initialization
+    /// </summary>
+    [HttpGet("test")]
+    [AllowAnonymous]
+    public IActionResult Test()
+    {
+        return Ok(new { status = "Controller initialized successfully", version = "2.24.3" });
+    }
+
+    /// <summary>
     /// Login with customer credentials and get JWT token
     /// </summary>
     [HttpPost("login")]
