@@ -3,11 +3,11 @@ using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Customers;
 using Grand.Infrastructure;
-using Grand.Module.Api.Commands.Models.Common;
-using MediatR;
+using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using Widgets.ExtendedWebApi.Services;
 
 namespace Widgets.ExtendedWebApi.Controllers.Mobile;
 
@@ -24,7 +24,7 @@ public class AccountController : ControllerBase
     private readonly IGroupService _groupService;
     private readonly IStoreContext _storeContext;
     private readonly CustomerSettings _customerSettings;
-    private readonly IMediator _mediator;
+    private readonly JwtTokenGenerator _jwtTokenGenerator;
 
     public AccountController(
         ICustomerService customerService,
@@ -32,14 +32,14 @@ public class AccountController : ControllerBase
         IGroupService groupService,
         IStoreContext storeContext,
         CustomerSettings customerSettings,
-        IMediator mediator)
+        BackendAPIConfig apiConfig)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
         _storeContext = storeContext;
         _customerSettings = customerSettings;
-        _mediator = mediator;
+        _jwtTokenGenerator = new JwtTokenGenerator(apiConfig);
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class AccountController : ControllerBase
                 { "Guid", customer.CustomerGuid.ToString() }
             };
 
-            var token = await _mediator.Send(new GenerateTokenCommand { Claims = claims });
+            var token = _jwtTokenGenerator.GenerateToken(claims);
 
             return Ok(new
             {
