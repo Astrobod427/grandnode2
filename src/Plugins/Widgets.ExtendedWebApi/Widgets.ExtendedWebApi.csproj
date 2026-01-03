@@ -32,7 +32,7 @@
             <Private>false</Private>
         </ProjectReference>
         <ProjectReference Include="..\..\Modules\Grand.Module.Api\Grand.Module.Api.csproj">
-            <Private>false</Private>
+            <Private>true</Private>
         </ProjectReference>
         <ProjectReference Include="..\..\Web\Grand.Web.Common\Grand.Web.Common.csproj">
             <Private>false</Private>
