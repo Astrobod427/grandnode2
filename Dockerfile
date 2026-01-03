@@ -17,15 +17,12 @@ RUN for module in /app/Modules/*; do \
   dotnet build "$module" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
   done
 
-# Build plugins
+# Build plugins (output goes to Web/Grand.Web/Plugins/)
 RUN for plugin in /app/Plugins/*; do \
   dotnet build "$plugin" -c Release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH; \
   done
 
-# Remove old plugins from Web directory (they will be copied back after publish)
-RUN rm -rf /app/Web/Grand.Web/Plugins/*
-
-# Publish Web project
+# Publish Web project (includes plugins already built into Web/Grand.Web/Plugins/)
 RUN dotnet publish /app/Web/Grand.Web/Grand.Web.csproj -c Release -o ./build/release -p:SourceRevisionId=$GIT_COMMIT -p:GitBranch=$GIT_BRANCH
 
 # Copy module DLLs to published output in correct folder structure
@@ -34,15 +31,6 @@ RUN for module in /app/Modules/*; do \
       if [ -d "$module/bin/Release" ]; then \
         mkdir -p "./build/release/Modules/$module_name"; \
         cp -r "$module/bin/Release"/*/* "./build/release/Modules/$module_name/" 2>/dev/null || true; \
-      fi; \
-    done
-
-# Copy plugin DLLs to published output in correct folder structure
-RUN for plugin in /app/Plugins/*; do \
-      plugin_name=$(basename "$plugin"); \
-      if [ -d "$plugin/bin/Release" ]; then \
-        mkdir -p "./build/release/Plugins/$plugin_name"; \
-        cp -r "$plugin/bin/Release"/*/* "./build/release/Plugins/$plugin_name/" 2>/dev/null || true; \
       fi; \
     done
 
