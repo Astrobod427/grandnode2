@@ -3,9 +3,9 @@ using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Customers;
 using Grand.Infrastructure;
-using Grand.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.Text;
 using Widgets.ExtendedWebApi.Services;
 
@@ -32,14 +32,14 @@ public class AccountController : ControllerBase
         IGroupService groupService,
         IStoreContext storeContext,
         CustomerSettings customerSettings,
-        BackendAPIConfig apiConfig)
+        IConfiguration configuration)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
         _storeContext = storeContext;
         _customerSettings = customerSettings;
-        _jwtTokenGenerator = new JwtTokenGenerator(apiConfig);
+        _jwtTokenGenerator = new JwtTokenGenerator(configuration);
     }
 
     /// <summary>
