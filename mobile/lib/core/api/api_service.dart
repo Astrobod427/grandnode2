@@ -96,23 +96,17 @@ class ApiService {
   // Auth methods
   Future<String> login(String email, String password) async {
     final base64Password = base64Encode(utf8.encode(password));
-    final url = Uri.parse('$baseUrl${ApiConfig.tokenEndpoint}');
-    final response = await http.post(
-      url,
-      headers: _headers(),
-      body: json.encode({
-        'email': email,
-        'password': base64Password,
-      }),
-    ).timeout(ApiConfig.connectionTimeout);
+    final response = await post(ApiConfig.loginEndpoint, {
+      'email': email,
+      'password': base64Password,
+    }, requiresAuth: false);
 
-    if (response.statusCode == 200) {
-      // Backend returns token as plain text, not JSON
-      final token = response.body;
+    if (response['token'] != null) {
+      final token = response['token'] as String;
       await setToken(token);
       return token;
     } else {
-      throw ApiException(response.statusCode, response.body);
+      throw ApiException(400, 'No token in response');
     }
   }
 

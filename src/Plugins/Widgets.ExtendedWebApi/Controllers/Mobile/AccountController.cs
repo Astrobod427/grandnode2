@@ -3,6 +3,8 @@ using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Customers;
 using Grand.Infrastructure;
+using Grand.Module.Api.Commands.Models.Common;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -22,19 +24,101 @@ public class AccountController : ControllerBase
     private readonly IGroupService _groupService;
     private readonly IStoreContext _storeContext;
     private readonly CustomerSettings _customerSettings;
+    private readonly IMediator _mediator;
 
     public AccountController(
         ICustomerService customerService,
         ICustomerManagerService customerManagerService,
         IGroupService groupService,
         IStoreContext storeContext,
-        CustomerSettings customerSettings)
+        CustomerSettings customerSettings,
+        IMediator mediator)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
         _storeContext = storeContext;
         _customerSettings = customerSettings;
+        _mediator = mediator;
+    }
+
+    /// <summary>
+    /// Login with customer credentials and get JWT token
+    /// </summary>
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        if (request == null)
+            return BadRequest(new { error = "Invalid request" });
+
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new { error = "Email is required" });
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { error = "Password is required" });
+
+        // Decode password if base64 encoded
+        var password = request.Password;
+        try
+        {
+            var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(request.Password));
+            if (!string.IsNullOrEmpty(decoded))
+                password = decoded;
+        }
+        catch
+        {
+            // Password was not base64 encoded, use as-is
+        }
+
+        try
+        {
+            // Validate customer credentials
+            var loginResult = await _customerManagerService.LoginCustomer(request.Email, password);
+
+            if (loginResult != CustomerLoginResults.Successful)
+            {
+                var errorMessage = loginResult switch
+                {
+                    CustomerLoginResults.WrongPassword => "Invalid email or password",
+                    CustomerLoginResults.NotRegistered => "Account not found",
+                    CustomerLoginResults.NotActive => "Account is not active",
+                    CustomerLoginResults.Deleted => "Account has been deleted",
+                    CustomerLoginResults.RequiresTwoFactor => "Two-factor authentication required",
+                    _ => "Login failed"
+                };
+                return Unauthorized(new { error = errorMessage });
+            }
+
+            // Get customer
+            var customer = await _customerService.GetCustomerByEmail(request.Email);
+            if (customer == null)
+                return Unauthorized(new { error = "Customer not found" });
+
+            // Generate JWT token with customer claims
+            var claims = new Dictionary<string, string>
+            {
+                { "Email", customer.Email },
+                { "CustomerId", customer.Id },
+                { "Guid", customer.CustomerGuid.ToString() }
+            };
+
+            var token = await _mediator.Send(new GenerateTokenCommand { Claims = claims });
+
+            return Ok(new
+            {
+                token,
+                customerId = customer.Id,
+                email = customer.Email,
+                firstName = customer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.FirstName),
+                lastName = customer.GetUserFieldFromEntity<string>(SystemCustomerFieldNames.LastName)
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>
@@ -163,6 +247,15 @@ public class AccountController : ControllerBase
         var existingCustomer = await _customerService.GetCustomerByEmail(email);
         return Ok(new { available = existingCustomer == null });
     }
+}
+
+/// <summary>
+/// Login request model
+/// </summary>
+public class LoginRequest
+{
+    public string Email { get; set; } = "";
+    public string Password { get; set; } = "";
 }
 
 /// <summary>

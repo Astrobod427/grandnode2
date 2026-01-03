@@ -3,7 +3,7 @@ class ApiConfig {
   static const String apiPath = '/api';
 
   // Auth endpoints
-  static const String tokenEndpoint = '/Api/Token/Create';
+  static const String loginEndpoint = '/api/mobile/Account/login';
   static const String registerEndpoint = '/api/mobile/Account/register';
 
   // Mobile API endpoints (require JWT auth)
