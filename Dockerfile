@@ -3,11 +3,14 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 LABEL stage=build-env
 WORKDIR /app
 
-# Copy 
+# Copy
 COPY Directory.Packages.props /app/
 COPY ./src/ /app/
 
-RUN echo '#!/bin/sh\nfind /app -type d \( -name "bin" -o -name "obj" \) -exec rm -rf {} + 2>/dev/null || true' > /clean.sh && chmod +x /clean.sh
+# Remove any pre-built DLLs/bins from source (they may be outdated)
+RUN echo '#!/bin/sh\nfind /app -type d \( -name "bin" -o -name "obj" \) -exec rm -rf {} + 2>/dev/null || true' > /clean.sh && \
+    chmod +x /clean.sh && \
+    /clean.sh
 
 ARG GIT_COMMIT
 ARG GIT_BRANCH
