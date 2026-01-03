@@ -1,4 +1,6 @@
+using Grand.Business.Core.Interfaces.Common.Configuration;
 using Grand.Business.Core.Interfaces.Common.Directory;
+using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Business.Core.Interfaces.Customers;
 using Grand.Business.Core.Utilities.Customers;
 using Grand.Domain.Common;
@@ -24,7 +26,7 @@ public class AccountController : ControllerBase
     private readonly ICustomerManagerService _customerManagerService;
     private readonly IGroupService _groupService;
     private readonly IStoreContext _storeContext;
-    private readonly CustomerSettings _customerSettings;
+    private readonly ISettingService _settingService;
     private readonly JwtTokenGenerator _jwtTokenGenerator;
 
     public AccountController(
@@ -32,14 +34,14 @@ public class AccountController : ControllerBase
         ICustomerManagerService customerManagerService,
         IGroupService groupService,
         IStoreContext storeContext,
-        CustomerSettings customerSettings,
+        ISettingService settingService,
         IConfiguration configuration)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
         _storeContext = storeContext;
-        _customerSettings = customerSettings;
+        _settingService = settingService;
         _jwtTokenGenerator = new JwtTokenGenerator(configuration);
     }
 
@@ -139,8 +141,11 @@ public class AccountController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "Password is required" });
 
+        // Load customer settings dynamically
+        var customerSettings = await _settingService.LoadSetting<CustomerSettings>(_storeContext.CurrentStore.Id);
+
         // Check if registration is allowed
-        if (_customerSettings.UserRegistrationType == UserRegistrationType.Disabled)
+        if (customerSettings.UserRegistrationType == UserRegistrationType.Disabled)
             return BadRequest(new { error = "Registration is disabled" });
 
         // Decode password if base64 encoded
@@ -196,7 +201,7 @@ public class AccountController : ControllerBase
                 await _customerService.UpdateUserField(customer, SystemCustomerFieldNames.LastName, request.LastName);
 
             // Determine if customer should be auto-approved
-            var isApproved = _customerSettings.UserRegistrationType == UserRegistrationType.Standard;
+            var isApproved = customerSettings.UserRegistrationType == UserRegistrationType.Standard;
 
             // Register the customer (this sets the password)
             var registrationRequest = new RegistrationRequest(
@@ -204,7 +209,7 @@ public class AccountController : ControllerBase
                 request.Email,
                 request.Email,
                 password,
-                _customerSettings.DefaultPasswordFormat,
+                customerSettings.DefaultPasswordFormat,
                 _storeContext.CurrentStore.Id,
                 isApproved
             );
@@ -212,7 +217,7 @@ public class AccountController : ControllerBase
             await _customerManagerService.RegisterCustomer(registrationRequest);
 
             // Return success with appropriate message based on registration type
-            var message = _customerSettings.UserRegistrationType switch
+            var message = customerSettings.UserRegistrationType switch
             {
                 UserRegistrationType.EmailValidation => "Registration successful. Please check your email to activate your account.",
                 UserRegistrationType.AdminApproval => "Registration successful. Your account is pending approval.",
@@ -225,8 +230,8 @@ public class AccountController : ControllerBase
                 message,
                 customerId = customer.Id,
                 email = customer.Email,
-                requiresActivation = _customerSettings.UserRegistrationType == UserRegistrationType.EmailValidation,
-                requiresApproval = _customerSettings.UserRegistrationType == UserRegistrationType.AdminApproval
+                requiresActivation = customerSettings.UserRegistrationType == UserRegistrationType.EmailValidation,
+                requiresApproval = customerSettings.UserRegistrationType == UserRegistrationType.AdminApproval
             });
         }
         catch (Exception ex)
