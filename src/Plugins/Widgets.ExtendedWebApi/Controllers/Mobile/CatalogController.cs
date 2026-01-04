@@ -79,7 +79,7 @@ public class CatalogController : ControllerBase
     }
 
     /// <summary>
-    /// Get products by category
+    /// Get products by category (includes subcategories)
     /// </summary>
     [HttpGet("categories/{categoryId}/products")]
     public async Task<IActionResult> GetProductsByCategory(
@@ -97,10 +97,16 @@ public class CatalogController : ControllerBase
             _ => ProductSortingEnum.Position
         };
 
+        // Get the category and all its subcategories
+        var categoryIds = new List<string> { categoryId };
+        var allCategories = await _categoryService.GetAllCategories(showHidden: false);
+        var subcategories = GetSubcategoriesRecursive(allCategories, categoryId);
+        categoryIds.AddRange(subcategories.Select(c => c.Id));
+
         var (products, _) = await _productService.SearchProducts(
             pageIndex: pageIndex,
             pageSize: pageSize,
-            categoryIds: new List<string> { categoryId },
+            categoryIds: categoryIds,
             visibleIndividuallyOnly: true,
             orderBy: sortOrder
         );
@@ -295,6 +301,21 @@ public class CatalogController : ControllerBase
             isFeatured = product.ShowOnHomePage,
             isNew = product.MarkAsNew
         };
+    }
+
+    private static List<Category> GetSubcategoriesRecursive(IList<Category> allCategories, string parentCategoryId)
+    {
+        var result = new List<Category>();
+        var directChildren = allCategories.Where(c => c.ParentCategoryId == parentCategoryId).ToList();
+
+        foreach (var child in directChildren)
+        {
+            result.Add(child);
+            // Recursively get subcategories of this child
+            result.AddRange(GetSubcategoriesRecursive(allCategories, child.Id));
+        }
+
+        return result;
     }
 
     #endregion
