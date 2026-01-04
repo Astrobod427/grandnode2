@@ -94,7 +94,7 @@ class ApiService {
   }
 
   // Auth methods
-  Future<String> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     final base64Password = base64Encode(utf8.encode(password));
     final response = await post(ApiConfig.loginEndpoint, {
       'email': email,
@@ -104,7 +104,7 @@ class ApiService {
     if (response['token'] != null) {
       final token = response['token'] as String;
       await setToken(token);
-      return token;
+      return response;
     } else {
       throw ApiException(400, 'No token in response');
     }

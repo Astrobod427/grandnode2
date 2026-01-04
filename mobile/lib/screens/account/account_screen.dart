@@ -67,15 +67,15 @@ class _AuthenticatedView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        auth.userEmail ?? 'Utilisateur',
+                        auth.displayName,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Membre',
-                        style: TextStyle(color: Colors.grey[600]),
+                        auth.userEmail ?? 'Membre',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
                     ],
                   ),
