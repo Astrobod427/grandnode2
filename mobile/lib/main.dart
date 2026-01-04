@@ -64,16 +64,14 @@ class MyApp extends StatelessWidget {
           create: (_) => CheckoutProvider(apiService: apiService),
         ),
       ],
-      child: Consumer2<ThemeProvider, LocaleProvider>(
-        builder: (context, themeProvider, localeProvider, child) {
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'La Baraque Shop',
             debugShowCheckedModeBanner: false,
             theme: themeProvider.theme,
             darkTheme: themeProvider.theme,
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            locale: localeProvider.locale,
-            supportedLocales: LocaleProvider.supportedLocales,
             home: const HomeScreen(),
           );
         },
