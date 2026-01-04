@@ -38,7 +38,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       if (_selectedCategoryId != null) {
         provider.loadProductsByCategory(_selectedCategoryId!, refresh: true);
       } else {
-        provider.loadFeaturedProducts();
+        provider.loadAllProducts(refresh: true);
       }
     });
   }
@@ -47,8 +47,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final provider = context.read<ProductProvider>();
-      if (_selectedCategoryId != null && provider.hasMore) {
-        provider.loadProductsByCategory(_selectedCategoryId!);
+      if (provider.hasMore) {
+        if (_selectedCategoryId != null) {
+          provider.loadProductsByCategory(_selectedCategoryId!);
+        } else {
+          provider.loadAllProducts();
+        }
       }
     }
   }
@@ -171,7 +175,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     if (_selectedCategoryId != null) {
                       await context.read<ProductProvider>().loadProductsByCategory(_selectedCategoryId!, refresh: true);
                     } else {
-                      await context.read<ProductProvider>().loadFeaturedProducts();
+                      await context.read<ProductProvider>().loadAllProducts(refresh: true);
                     }
                   },
                   child: GridView.builder(
@@ -183,7 +187,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
-                    itemCount: products.length + (productProvider.hasMore && _selectedCategoryId != null ? 1 : 0),
+                    itemCount: products.length + (productProvider.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index >= products.length) {
                         return const Center(child: CircularProgressIndicator());
@@ -253,7 +257,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           setState(() {
                             _selectedCategoryId = null;
                           });
-                          provider.loadFeaturedProducts();
+                          provider.loadAllProducts(refresh: true);
                         },
                         child: const Text('Tout voir'),
                       ),

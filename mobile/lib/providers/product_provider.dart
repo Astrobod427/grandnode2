@@ -105,6 +105,51 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadAllProducts({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _products = [];
+      _hasMore = true;
+    }
+
+    if (!_hasMore || _isLoading) return;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await apiService.searchProducts(
+        '',
+        page: _currentPage,
+        pageSize: 20,
+      );
+
+      if (response['items'] != null) {
+        final newProducts = (response['items'] as List)
+            .map<Product>((json) => Product.fromJson(json))
+            .toList();
+
+        _totalCount = response['totalCount'] ?? 0;
+
+        if (refresh) {
+          _products = newProducts;
+        } else {
+          _products.addAll(newProducts);
+        }
+
+        _currentPage++;
+        _hasMore = _products.length < _totalCount;
+      }
+    } catch (e) {
+      _error = 'Erreur de chargement';
+      debugPrint('Error loading all products: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   Future<void> searchProducts(String query, {bool refresh = true}) async {
     if (query.length < 2) {
       _products = [];
