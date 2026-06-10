@@ -21,7 +21,7 @@ services:
         volumes:
             # Montage du code source de GrandNode
             - .:/app
-            - ~/.nuget/packages:/root/.nuget/packages:ro
+            - ~/.nuget/packages:/root/.nuget/packages
             # Isolation des dossiers de build
             - /app/src/Web/Grand.Web/bin
             - /app/src/Web/Grand.Web/obj
