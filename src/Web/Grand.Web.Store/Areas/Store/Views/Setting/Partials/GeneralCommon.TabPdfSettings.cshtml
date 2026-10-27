@@ -1,0 +1,20 @@
+﻿@model GeneralCommonSettingsModel
+
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="PdfSettings.LogoPictureId">
+            <div id="pdf-logo-picture">
+                <admin-input asp-for="PdfSettings.LogoPictureId"/>
+            </div>
+        </admin-field>
+        <admin-field asp-for="PdfSettings.DisablePdfInvoicesForPendingOrders"/>
+    </div>
+    <div class="grand-fields mt-3">
+        <admin-field asp-for="PdfSettings.InvoiceHeaderText">
+            <admin-textarea asp-for="PdfSettings.InvoiceHeaderText"></admin-textarea>
+        </admin-field>
+        <admin-field asp-for="PdfSettings.InvoiceFooterText">
+            <admin-textarea asp-for="PdfSettings.InvoiceFooterText"></admin-textarea>
+        </admin-field>
+    </div>
+</admin-card>

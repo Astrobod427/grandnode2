@@ -1,0 +1,46 @@
+﻿@model SalesSettingsModel
+
+@* how orders are placed, the minimum amounts a customer must reach, the invoice PDF the order
+   e-mails carry, and when gift vouchers bought in an order switch on and off *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="OrderSettings.IsReOrderAllowed"/>
+        <admin-field asp-for="OrderSettings.AnonymousCheckoutAllowed"/>
+        <admin-field asp-for="OrderSettings.TermsOfServiceOnShoppingCartPage"/>
+        <admin-field asp-for="OrderSettings.TermsOfServiceOnOrderConfirmPage"/>
+        <admin-field asp-for="OrderSettings.DisableOrderCompletedPage"/>
+        <admin-field asp-for="OrderSettings.CompleteOrderWhenDelivered"/>
+        <admin-field asp-for="OrderSettings.AllowCustomerToAddOrderNote"/>
+        <admin-field asp-for="OrderSettings.UserCanCancelUnpaidOrder"/>
+        <admin-field asp-for="OrderSettings.UnpublishAuctionProduct"/>
+        <admin-field asp-for="OrderSettings.LengthCode" size="sm"/>
+        <admin-field asp-for="OrderSettings.MinimumOrderPlacementInterval" size="sm"/>
+        <admin-field asp-for="OrderSettings.PageSize" size="sm"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="note note-warning">
+        <span>@Loc["Admin.Settings.Orders.MinOrderSubtotalAmount.Note"]</span>
+    </div>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="OrderSettings.MinOrderSubtotalAmount" size="md" suffix="@Model.OrderSettings.PrimaryStoreCurrencyCode"/>
+        <admin-field asp-for="OrderSettings.MinOrderTotalAmount" size="md" suffix="@Model.OrderSettings.PrimaryStoreCurrencyCode"/>
+        <admin-field asp-for="OrderSettings.MinOrderSubtotalAmountIncludingTax"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="OrderSettings.AttachPdfInvoiceToOrderPlacedEmail"/>
+        <admin-field asp-for="OrderSettings.AttachPdfInvoiceToOrderPaidEmail"/>
+        <admin-field asp-for="OrderSettings.AttachPdfInvoiceToOrderCompletedEmail"/>
+        <admin-field asp-for="OrderSettings.AttachPdfInvoiceToBinary"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="OrderSettings.GiftVouchers_Activated_OrderStatusId" asp-items="Model.OrderSettings.GiftVouchers_Activated_OrderStatuses" size="md"/>
+        <admin-field asp-for="OrderSettings.GiftVouchers_Assign_StoreId"/>
+        <admin-field asp-for="OrderSettings.DeactivateGiftVouchersAfterCancelOrder"/>
+        <admin-field asp-for="OrderSettings.DeactivateGiftVouchersAfterDeletingOrder"/>
+    </div>
+</admin-card>

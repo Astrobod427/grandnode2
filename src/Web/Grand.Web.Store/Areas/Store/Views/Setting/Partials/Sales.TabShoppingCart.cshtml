@@ -1,0 +1,85 @@
+﻿@model SalesSettingsModel
+
+<vc:admin-widget widget-zone="shopping_cart_settings_top" additional-data="null"/>
+@* what adding to the cart or wishlist does and how many items they hold, what the cart shows,
+   the wishlist e-mail and the mini cart with what they reveal, then the cart's behaviour *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="ShoppingCartSettings.DisplayCartAfterAddingProduct"/>
+        <admin-field asp-for="ShoppingCartSettings.DisplayWishlistAfterAddingProduct"/>
+        <admin-field asp-for="ShoppingCartSettings.AllowOutOfStockItemsToBeAddedToWishlist"/>
+        <admin-field asp-for="ShoppingCartSettings.MoveItemsFromWishlistToCart"/>
+        <admin-field asp-for="ShoppingCartSettings.MaximumShoppingCartItems" size="sm"/>
+        <admin-field asp-for="ShoppingCartSettings.MaximumWishlistItems" size="sm"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="ShoppingCartSettings.ShowProductImagesOnShoppingCart"/>
+        <admin-field asp-for="ShoppingCartSettings.ShowProductImagesOnWishList"/>
+        <admin-field asp-for="ShoppingCartSettings.ShowDiscountBox"/>
+        <admin-field asp-for="ShoppingCartSettings.ShowGiftVoucherBox"/>
+        <admin-field asp-for="ShoppingCartSettings.CrossSellsNumber" size="sm"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <div class="grand-reveal">
+            <admin-field asp-for="ShoppingCartSettings.EmailWishlistEnabled"/>
+            <div class="grand-reveal__body grand-fields grand-fields--2col">
+                <admin-field asp-for="ShoppingCartSettings.AllowAnonymousUsersToEmailWishlist" id="pnlAllowAnonymousUsersToEmailWishlist"/>
+            </div>
+        </div>
+        <div class="grand-reveal">
+            <admin-field asp-for="ShoppingCartSettings.MiniShoppingCartEnabled"/>
+            <div class="grand-reveal__body grand-fields grand-fields--2col">
+                <admin-field asp-for="ShoppingCartSettings.MiniCartProductNumber" id="pnlMiniShoppingCartProductNumber" size="sm"/>
+                <admin-field asp-for="ShoppingCartSettings.ShowImagesInsidebarCart" id="pnlShowProductImagesInMiniShoppingCart"/>
+            </div>
+        </div>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="ShoppingCartSettings.AllowCartItemEditing"/>
+        <admin-field asp-for="ShoppingCartSettings.SharedCartBetweenStores"/>
+        <admin-field asp-for="ShoppingCartSettings.AllowOnHoldCart"/>
+        <admin-field asp-for="ShoppingCartSettings.AllowToSelectWarehouse"/>
+        <admin-field asp-for="ShoppingCartSettings.GroupTierPrices"/>
+        <admin-field asp-for="ShoppingCartSettings.RoundPrices"/>
+        <admin-field asp-for="ShoppingCartSettings.ReservationDateFormat" size="md"/>
+    </div>
+</admin-card>
+<vc:admin-widget widget-zone="shopping_cart_settings_bottom" additional-data="null"/>
+
+<script>
+        $(document).ready(function () {
+
+            $("#@Html.IdFor(model => model.ShoppingCartSettings.MiniShoppingCartEnabled)").click(toggleMiniShoppingCartEnabled);
+            $("#@Html.IdFor(model => model.ShoppingCartSettings.EmailWishlistEnabled)").click(toggleEmailWishlistEnabled);
+
+            toggleMiniShoppingCartEnabled();
+            toggleEmailWishlistEnabled();
+        });
+
+        function toggleMiniShoppingCartEnabled() {
+            if ($('#@Html.IdFor(model => model.ShoppingCartSettings.MiniShoppingCartEnabled)').is(':checked')) {
+                $('#pnlMiniShoppingCartProductNumber').show();
+                $('#pnlShowProductImagesInMiniShoppingCart').show();
+            }
+            else {
+                $('#pnlMiniShoppingCartProductNumber').hide();
+                $('#pnlShowProductImagesInMiniShoppingCart').hide();
+            }
+        }
+
+        function toggleEmailWishlistEnabled() {
+            if ($('#@Html.IdFor(model => model.ShoppingCartSettings.EmailWishlistEnabled)').is(':checked')) {
+                $('#pnlAllowAnonymousUsersToEmailWishlist').show();
+            }
+            else {
+                $('#pnlAllowAnonymousUsersToEmailWishlist').hide();
+            }
+        }
+
+</script>

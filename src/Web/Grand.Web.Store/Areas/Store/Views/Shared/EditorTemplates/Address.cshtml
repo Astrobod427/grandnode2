@@ -1,0 +1,126 @@
+﻿@model AddressModel
+@if (Model.CountryEnabled && Model.StateProvinceEnabled)
+{
+    <script>
+        $(document).ready(function() {
+            $("#@Html.IdFor(model => model.CountryId)").change(function() {
+                var selectedItem = $(this).val();
+                var ddlStates = $("#@Html.IdFor(model => model.StateProvinceId)");
+                $.ajax({
+                    cache: false,
+                    type: "GET",
+                    url: "@(Url.Action("GetStatesByCountryId", "Home"))",
+                    data: { "countryId": selectedItem, "addSelectStateItem": "false" },
+                    success: function(data) {
+                        ddlStates.html('');
+                        $.each(data, function(id, option) {
+                            ddlStates.append($('<option></option>').val(option.id).html(option.name));
+                        });
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        alert('Failed to retrieve states.');
+                    }
+                });
+            });
+        });
+    </script>
+}
+<input asp-for="Id" type="hidden"/>
+<input asp-for="FirstNameEnabled" type="hidden"/>
+<input asp-for="FirstNameRequired" type="hidden"/>
+<input asp-for="LastNameEnabled" type="hidden"/>
+<input asp-for="LastNameRequired" type="hidden"/>
+<input asp-for="EmailEnabled" type="hidden"/>
+<input asp-for="EmailRequired" type="hidden"/>
+<input asp-for="CompanyEnabled" type="hidden"/>
+<input asp-for="CompanyRequired" type="hidden"/>
+<input asp-for="VatNumberEnabled" type="hidden"/>
+<input asp-for="VatNumberRequired" type="hidden"/>
+<input asp-for="CountryEnabled" type="hidden"/>
+<input asp-for="StateProvinceEnabled" type="hidden"/>
+<input asp-for="CityEnabled" type="hidden"/>
+<input asp-for="CityRequired" type="hidden"/>
+<input asp-for="StreetAddressEnabled" type="hidden"/>
+<input asp-for="StreetAddressRequired" type="hidden"/>
+<input asp-for="StreetAddress2Enabled" type="hidden"/>
+<input asp-for="StreetAddress2Required" type="hidden"/>
+<input asp-for="ZipPostalCodeEnabled" type="hidden"/>
+<input asp-for="ZipPostalCodeRequired" type="hidden"/>
+<input asp-for="PhoneEnabled" type="hidden"/>
+<input asp-for="PhoneRequired" type="hidden"/>
+<input asp-for="FaxEnabled" type="hidden"/>
+<input asp-for="FaxRequired" type="hidden"/>
+<input asp-for="NoteEnabled" type="hidden"/>
+
+@* the fields of the host card: every screen that renders this template puts it inside an
+   <admin-card>, so it brings the field grid and no chrome of its own *@
+<div class="grand-fields grand-fields--2col">
+    @if (Model.NameEnabled)
+    {
+        <admin-field asp-for="Name"/>
+    }
+    @if (Model.FirstNameEnabled)
+    {
+        <admin-field asp-for="FirstName"/>
+    }
+    @if (Model.LastNameEnabled)
+    {
+        <admin-field asp-for="LastName"/>
+    }
+    @if (Model.EmailEnabled)
+    {
+        <admin-field asp-for="Email"/>
+    }
+    @if (Model.CompanyEnabled)
+    {
+        <admin-field asp-for="Company"/>
+    }
+    @if (Model.VatNumberEnabled)
+    {
+        <admin-field asp-for="VatNumber"/>
+    }
+    @if (Model.CountryEnabled)
+    {
+        <admin-field asp-for="CountryId" asp-items="Model.AvailableCountries"/>
+    }
+    @if (Model.CountryEnabled && Model.StateProvinceEnabled)
+    {
+        <admin-field asp-for="StateProvinceId" asp-items="Model.AvailableStates"/>
+    }
+    @if (Model.CityEnabled)
+    {
+        <admin-field asp-for="City"/>
+    }
+    @if (Model.StreetAddressEnabled)
+    {
+        <admin-field asp-for="Address1"/>
+    }
+    @if (Model.StreetAddress2Enabled)
+    {
+        <admin-field asp-for="Address2"/>
+    }
+    @if (Model.ZipPostalCodeEnabled)
+    {
+        <admin-field asp-for="ZipPostalCode"/>
+    }
+    @if (Model.PhoneEnabled)
+    {
+        <admin-field asp-for="PhoneNumber"/>
+    }
+    @if (Model.FaxEnabled)
+    {
+        <admin-field asp-for="FaxNumber"/>
+    }
+    @if (Model.NoteEnabled)
+    {
+        <admin-field asp-for="Note"/>
+    }
+    @if (Model.AddressTypeEnabled)
+    {
+        <admin-field asp-for="AddressType" asp-items="EnumTranslationService.ToSelectList(AddressType.Any, false)"/>
+    }
+    @if (Model.CustomAddressAttributes.Count > 0)
+    {
+        <partial name="Partials/AddressAttributes" model="Model.CustomAddressAttributes"/>
+    }
+</div>

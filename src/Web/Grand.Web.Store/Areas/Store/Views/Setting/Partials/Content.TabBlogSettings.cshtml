@@ -1,0 +1,24 @@
+﻿@model ContentSettingsModel
+
+@* the blog and its listing, then comments on posts, then what the home page shows of it *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="BlogSettings.Enabled"/>
+        <admin-field asp-for="BlogSettings.ShowBlogPostsInSearchAutoComplete"/>
+        <admin-field asp-for="BlogSettings.PostsPageSize" size="sm"/>
+        <admin-field asp-for="BlogSettings.NumberOfTags" size="sm"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="BlogSettings.AllowNotRegisteredUsersToLeaveComments"/>
+        <admin-field asp-for="BlogSettings.NotifyAboutNewBlogComments"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="BlogSettings.ShowBlogOnHomePage"/>
+        <admin-field asp-for="BlogSettings.HomePageBlogCount" size="sm"/>
+        <admin-field asp-for="BlogSettings.MaxTextSizeHomePage" size="sm"/>
+    </div>
+</admin-card>

@@ -1,0 +1,64 @@
+﻿@using Grand.Domain.Customers
+@model CustomerSettingsModel
+
+<script>
+    $(document).ready(function () {
+        $("#@Html.IdFor(model => model.CustomerSettings.UsernamesEnabled)").click(toggleUsername);
+        toggleUsername();
+    });
+
+    function toggleUsername() {
+        if ($('#@Html.IdFor(model => model.CustomerSettings.UsernamesEnabled)').is(':checked')) {
+            $('#pnlAllowUsersToChangeUsernames').show();
+            $('#pnlCheckUsernameAvailability').show();
+        }
+        else {
+            $('#pnlAllowUsersToChangeUsernames').hide();
+            $('#pnlCheckUsernameAvailability').hide();
+        }
+    }
+</script>
+@* who can register and how customers are named, the account options and usernames with what
+   they reveal, then which tabs the account page hides, then how long a visitor counts as online *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="CustomerSettings.UserRegistrationType" asp-items="EnumTranslationService.ToSelectList((UserRegistrationType)Model.CustomerSettings.UserRegistrationType)" size="md"/>
+        <admin-field asp-for="CustomerSettings.CustomerNameFormat" asp-items="EnumTranslationService.ToSelectList((CustomerNameFormat)Model.CustomerSettings.CustomerNameFormat)" size="md"/>
+        <admin-field asp-for="CustomerSettings.NotifyNewCustomerRegistration"/>
+        <admin-field asp-for="CustomerSettings.RegistrationFreeShipping"/>
+        <admin-field asp-for="CustomerSettings.AllowUsersToChangeEmail"/>
+        <admin-field asp-for="CustomerSettings.AllowUsersToDeleteAccount"/>
+        <admin-field asp-for="CustomerSettings.AllowUsersToExportData"/>
+        <admin-field asp-for="CustomerSettings.GeoEnabled"/>
+        <admin-field asp-for="CustomerSettings.StoreLastVisitedPage"/>
+        <div class="grand-reveal">
+            <admin-field asp-for="CustomerSettings.UsernamesEnabled"/>
+            <div class="grand-reveal__body grand-fields grand-fields--2col">
+                <admin-field asp-for="CustomerSettings.AllowUsersToChangeUsernames" id="pnlAllowUsersToChangeUsernames"/>
+                <admin-field asp-for="CustomerSettings.CheckUsernameAvailabilityEnabled" id="pnlCheckUsernameAvailability"/>
+            </div>
+        </div>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="CustomerSettings.HideDownloadableProductsTab"/>
+        <admin-field asp-for="CustomerSettings.HideOutOfStockSubscriptionsTab"/>
+        <admin-field asp-for="CustomerSettings.HideAuctionsTab"/>
+        <admin-field asp-for="CustomerSettings.HideNotesTab"/>
+        <admin-field asp-for="CustomerSettings.HideReviewsTab"/>
+        <admin-field asp-for="CustomerSettings.HideCoursesTab"/>
+        <admin-field asp-for="CustomerSettings.HideSubAccountsTab"/>
+        <admin-field asp-for="CustomerSettings.HideDocumentsTab"/>
+        @* unsubscribing is offered only while the block is shown, so the two share a row; the
+           Customer form fields tab's script toggles it *@
+        <admin-field asp-for="CustomerSettings.HideNewsletterBlock"/>
+        <admin-field asp-for="CustomerSettings.NewsletterBlockAllowToUnsubscribe" id="pnlNewsletterBlockAllowToUnsubscribe"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="CustomerSettings.OnlineShoppingCartMinutes" size="sm"/>
+        <admin-field asp-for="CustomerSettings.OnlineCustomerMinutes" size="sm"/>
+    </div>
+</admin-card>

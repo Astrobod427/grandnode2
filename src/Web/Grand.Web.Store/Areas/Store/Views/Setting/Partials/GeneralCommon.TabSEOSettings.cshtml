@@ -1,0 +1,59 @@
+﻿@model GeneralCommonSettingsModel
+<script>
+    $(document).ready(function () {
+        $("#@Html.IdFor(model => model.SeoSettings.ConvertNonWesternChars)").click(toggleSeoCharField);
+
+        toggleSeoCharField();
+    });
+
+    function toggleSeoCharField() {
+        if ($('#@Html.IdFor(model => model.SeoSettings.ConvertNonWesternChars)').is(':checked')) {
+            $('#SeoCharConversion').show();
+        }
+        else {
+            $('#SeoCharConversion').hide();
+        }
+    }
+    </script>
+@* titles and meta tags, then how URLs are built, then the tags for social sharing; the
+   character conversion table is revealed by "convert non-western chars" *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="SeoSettings.PageTitleSeparator" size="sm"/>
+        <admin-field asp-for="SeoSettings.PageTitleSeoAdjustment" size="md"/>
+        <admin-field asp-for="SeoSettings.DefaultTitle"/>
+        <admin-field asp-for="SeoSettings.DefaultMetaKeywords"/>
+        <admin-field asp-for="SeoSettings.DefaultMetaDescription"/>
+        <admin-field asp-for="SeoSettings.GenerateProductMetaDescription"/>
+    </div>
+    <div class="grand-fields mt-3">
+        <admin-field asp-for="SeoSettings.CustomHeadTags"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <div class="grand-reveal">
+            <admin-field asp-for="SeoSettings.ConvertNonWesternChars"/>
+            <div class="grand-reveal__body grand-fields" id="SeoCharConversion">
+                <div class="note note-warning mb-0">
+                    <span>@Loc["Admin.Settings.GeneralCommon.SeoCharConversion.Note"]</span>
+                </div>
+                <admin-field asp-for="SeoSettings.SeoCharConversion"/>
+            </div>
+        </div>
+        <admin-field asp-for="SeoSettings.AllowSlashChar"/>
+        <admin-field asp-for="SeoSettings.AllowUnicodeCharsInUrls"/>
+        <admin-field asp-for="SeoSettings.CanonicalUrlsEnabled"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="SeoSettings.TwitterMetaTags"/>
+        <admin-field asp-for="SeoSettings.OpenGraphMetaTags"/>
+        @{
+            ViewData["Reference"] = "Settings";
+            ViewData["ObjectId"] = "SeoSettings.StorePicture";
+        }
+        <admin-field asp-for="SeoSettings.StorePictureId"/>
+    </div>
+</admin-card>

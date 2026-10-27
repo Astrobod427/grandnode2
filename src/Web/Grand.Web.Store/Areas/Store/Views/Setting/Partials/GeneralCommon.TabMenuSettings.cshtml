@@ -1,0 +1,12 @@
+﻿@model GeneralCommonSettingsModel
+@* which items the storefront's top menu shows *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="DisplayMenuSettings.DisplayHomePageMenu"/>
+        <admin-field asp-for="DisplayMenuSettings.DisplayNewProductsMenu"/>
+        <admin-field asp-for="DisplayMenuSettings.DisplaySearchMenu"/>
+        <admin-field asp-for="DisplayMenuSettings.DisplayCustomerMenu"/>
+        <admin-field asp-for="DisplayMenuSettings.DisplayBlogMenu"/>
+        <admin-field asp-for="DisplayMenuSettings.DisplayContactUsMenu"/>
+    </div>
+</admin-card>

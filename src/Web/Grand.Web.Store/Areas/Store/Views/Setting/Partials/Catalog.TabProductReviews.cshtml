@@ -1,0 +1,15 @@
+﻿@model CatalogSettingsModel
+
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="ProductReviewsMustBeApproved"/>
+        <admin-field asp-for="AllowAnonymousUsersToReviewProduct"/>
+        <admin-field asp-for="NotifyStoreOwnerAboutNewProductReviews"/>
+        <admin-field asp-for="ProductReviewPossibleOnlyAfterPurchasing"/>
+        <admin-field asp-for="ProductReviewPossibleOnlyOnce"/>
+    </div>
+    <div class="grand-fields grand-fields--2col mt-3">
+        <admin-field asp-for="DefaultProductRatingValue" size="sm"/>
+        <admin-field asp-for="FilterProductRating" size="md"/>
+    </div>
+</admin-card>

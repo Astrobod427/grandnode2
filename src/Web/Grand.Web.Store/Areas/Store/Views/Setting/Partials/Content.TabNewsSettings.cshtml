@@ -1,0 +1,21 @@
+﻿@model ContentSettingsModel
+
+@* news and its archive, then comments on news items, then what the home page shows of it *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="NewsSettings.Enabled"/>
+        <admin-field asp-for="NewsSettings.NewsArchivePageSize" size="sm"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="NewsSettings.AllowNotRegisteredUsersToLeaveComments"/>
+        <admin-field asp-for="NewsSettings.NotifyAboutNewNewsComments"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="NewsSettings.ShowNewsOnMainPage"/>
+        <admin-field asp-for="NewsSettings.MainPageNewsCount" size="sm"/>
+    </div>
+</admin-card>

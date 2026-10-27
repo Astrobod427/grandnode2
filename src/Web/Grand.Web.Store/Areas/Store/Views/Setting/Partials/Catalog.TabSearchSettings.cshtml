@@ -1,0 +1,58 @@
+﻿@model CatalogSettingsModel
+
+<script>
+    $(document).ready(function () {
+
+        $("#@Html.IdFor(model => model.SearchPageAllowCustomersToSelectPageSize)").click(toggleSearchPagePageSize);
+        $("#@Html.IdFor(model => model.ProductSearchAutoCompleteEnabled)").click(toggleProductSearchAutoComplete);
+
+        toggleSearchPagePageSize();
+        toggleProductSearchAutoComplete();
+    });
+
+    function toggleSearchPagePageSize() {
+        if ($('#@Html.IdFor(model => model.SearchPageAllowCustomersToSelectPageSize)').is(':checked')) {
+            $('#pnlSearchPageProductsPerPage').hide();
+            $('#pnlSearchPagePageSizeOptions').show();
+        } else {
+            $('#pnlSearchPageProductsPerPage').show();
+            $('#pnlSearchPagePageSizeOptions').hide();
+        }
+    }
+
+    function toggleProductSearchAutoComplete() {
+        if ($('#@Html.IdFor(model => model.ProductSearchAutoCompleteEnabled)').is(':checked')) {
+            $('#pnlProductSearchAutoCompleteNumberOfProducts').show();
+            $('#pnlShowProductImagesInSearchAutoComplete').show();
+        }
+        else {
+            $('#pnlProductSearchAutoCompleteNumberOfProducts').hide();
+            $('#pnlShowProductImagesInSearchAutoComplete').hide();
+        }
+    }
+</script>
+
+@* the page size of the search page - the fixed number while customers may not choose it, the
+   options they choose from while they may - then autocomplete and what search looks at *@
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <admin-field asp-for="SearchPageAllowCustomersToSelectPageSize"/>
+        <admin-field asp-for="SearchPageProductsPerPage" id="pnlSearchPageProductsPerPage" size="sm"/>
+        <admin-field asp-for="SearchPagePageSizeOptions" id="pnlSearchPagePageSizeOptions" size="md"/>
+    </div>
+</admin-card>
+<admin-card>
+    <div class="grand-fields grand-fields--2col">
+        <div class="grand-reveal">
+            <admin-field asp-for="ProductSearchAutoCompleteEnabled"/>
+            <div class="grand-reveal__body grand-fields grand-fields--2col">
+                <admin-field asp-for="ProductSearchAutoCompleteNumberOfProducts" id="pnlProductSearchAutoCompleteNumberOfProducts" size="sm"/>
+                <admin-field asp-for="ShowProductImagesInSearchAutoComplete" id="pnlShowProductImagesInSearchAutoComplete"/>
+            </div>
+        </div>
+        <admin-field asp-for="ProductSearchTermMinimumLength" size="sm"/>
+        <admin-field asp-for="SaveSearchAutoComplete"/>
+        <admin-field asp-for="SearchBySku"/>
+        <admin-field asp-for="SearchByDescription"/>
+    </div>
+</admin-card>

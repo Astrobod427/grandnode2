@@ -1,0 +1,31 @@
+﻿@model CatalogSettingsModel
+
+<script>
+        $(document).ready(function () {
+
+            $("#@Html.IdFor(model => model.ShowShareButton)").click(togglePageShareCode);
+
+            togglePageShareCode();
+        });
+
+        function togglePageShareCode() {
+            if ($('#@Html.IdFor(model => model.ShowShareButton)').is(':checked')) {
+                $('#pnlPageShareCode').show();
+            }
+            else {
+                $('#pnlPageShareCode').hide();
+            }
+        }
+</script>
+<admin-card>
+    <div class="grand-fields">
+        <div class="grand-reveal">
+            <admin-field asp-for="ShowShareButton"/>
+            <div class="grand-reveal__body grand-fields">
+                <admin-field asp-for="PageShareCode" id="pnlPageShareCode">
+                    <admin-textarea asp-for="PageShareCode"></admin-textarea>
+                </admin-field>
+            </div>
+        </div>
+    </div>
+</admin-card>
