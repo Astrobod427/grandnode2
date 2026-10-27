@@ -18,7 +18,9 @@ public class JwtTokenGenerator
     public string GenerateToken(Dictionary<string, string> claims)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var secretKey = _configuration["BackendAPI:SecretKey"] ?? "GrandNodeSecretKeyForJWT2024";
+        var secretKey = _configuration["BackendAPI:SecretKey"];
+        if (string.IsNullOrEmpty(secretKey))
+            throw new InvalidOperationException("BackendAPI:SecretKey is not configured");
         var key = Encoding.ASCII.GetBytes(secretKey);
 
         var claimsList = new List<Claim>();

@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Permissions;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +17,15 @@ public class ApiKeyAuthorizeAttribute : Attribute, IAsyncAuthorizationFilter
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
         // Get API key from environment variable
-        var validApiKey = Environment.GetEnvironmentVariable("GRANDNODE_API_KEY") ?? "default-api-key-change-me";
+        // No fallback key: without GRANDNODE_API_KEY (min. 20 chars) the header path is closed
+        var validApiKey = Environment.GetEnvironmentVariable("GRANDNODE_API_KEY");
 
         // Option 1: Check for API key in header
         if (context.HttpContext.Request.Headers.TryGetValue(API_KEY_HEADER, out var extractedApiKey))
         {
-            if (validApiKey.Equals(extractedApiKey))
+            if (!string.IsNullOrEmpty(validApiKey) && validApiKey.Length >= 20 &&
+                CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(validApiKey),
+                    Encoding.UTF8.GetBytes(extractedApiKey.ToString())))
             {
                 // API key is valid - allow request
                 return;
