@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Grand.Business.Core.Interfaces.Common.Configuration;
 using Grand.Business.Core.Interfaces.Common.Directory;
 using Grand.Business.Core.Interfaces.Common.Security;
@@ -27,24 +28,24 @@ public class AccountController : ControllerBase
     private readonly IGroupService _groupService;
     private readonly ISettingService _settingService;
     private readonly JwtTokenGenerator _jwtTokenGenerator;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         ICustomerService customerService,
         ICustomerManagerService customerManagerService,
         IGroupService groupService,
         ISettingService settingService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AccountController> logger)
     {
         _customerService = customerService;
         _customerManagerService = customerManagerService;
         _groupService = groupService;
         _settingService = settingService;
         _jwtTokenGenerator = new JwtTokenGenerator(configuration);
+        _logger = logger;
     }
 
-    /// <summary>
-    /// Test endpoint to verify controller initialization
-    /// </summary>
 
     /// <summary>
     /// Login with customer credentials and get JWT token
@@ -78,6 +79,10 @@ public class AccountController : ControllerBase
 
         try
         {
+            // LoginCustomer (2.4) dereferences the customer without a null check: look it up first
+            if (await _customerService.GetCustomerByEmail(request.Email) == null)
+                return Unauthorized(new { error = "Invalid email or password" });
+
             // Validate customer credentials
             var loginResult = await _customerManagerService.LoginCustomer(request.Email, password);
 
@@ -86,7 +91,7 @@ public class AccountController : ControllerBase
                 var errorMessage = loginResult switch
                 {
                     CustomerLoginResults.WrongPassword => "Invalid email or password",
-                    CustomerLoginResults.NotRegistered => "Account not found",
+                    CustomerLoginResults.NotRegistered => "Invalid email or password",
                     CustomerLoginResults.NotActive => "Account is not active",
                     CustomerLoginResults.Deleted => "Account has been deleted",
                     CustomerLoginResults.RequiresTwoFactor => "Two-factor authentication required",
@@ -121,7 +126,8 @@ public class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            _logger.LogError(ex, "Mobile login failed");
+            return BadRequest(new { error = "Login failed" });
         }
     }
 
