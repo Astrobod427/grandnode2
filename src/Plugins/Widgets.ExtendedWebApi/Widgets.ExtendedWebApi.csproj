@@ -38,29 +38,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OData">
-            <Private>true</Private>
-        </PackageReference>
-        <PackageReference Include="AutoMapper" />
-    </ItemGroup>
-
-    <ItemGroup>
         <None Include="*.md" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
-
-    <Target Name="CopyODataDependencies" AfterTargets="Build">
-        <PropertyGroup>
-            <NuGetPackagesPath Condition="'$(NuGetPackageRoot)' != ''">$(NuGetPackageRoot)</NuGetPackagesPath>
-            <NuGetPackagesPath Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(USERPROFILE)\.nuget\packages\</NuGetPackagesPath>
-            <NuGetPackagesPath Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/</NuGetPackagesPath>
-        </PropertyGroup>
-        <ItemGroup>
-            <ODataDependencies Include="$(NuGetPackagesPath)microsoft.aspnetcore.odata/9.0.0/lib/net8.0/*.dll" />
-            <ODataDependencies Include="$(NuGetPackagesPath)microsoft.odata.core/8.0.1/lib/net8.0/*.dll" />
-            <ODataDependencies Include="$(NuGetPackagesPath)microsoft.odata.edm/8.0.1/lib/net8.0/*.dll" />
-            <ODataDependencies Include="$(NuGetPackagesPath)microsoft.odata.modelbuilder/2.0.0/lib/net8.0/*.dll" />
-        </ItemGroup>
-        <Copy SourceFiles="@(ODataDependencies)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
-        <Message Text="Copied OData dependencies to plugin directory" Importance="high" />
-    </Target>
 </Project>

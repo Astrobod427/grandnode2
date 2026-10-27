@@ -2,7 +2,7 @@ using Grand.Business.Core.Commands.Checkout.Shipping;
 using Grand.Business.Core.Interfaces.Checkout.Shipping;
 using Grand.Business.Core.Interfaces.Common.Security;
 using Grand.Domain.Permissions;
-using MediatR;
+using Grand.Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Widgets.ExtendedWebApi.DTOs;
 

@@ -55,7 +55,7 @@ public class CatalogController : ControllerBase
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategories()
     {
-        var categories = await _categoryService.GetAllCategories(showHidden: false);
+        var categories = await _categoryService.GetAllCategories(parentId: null, categoryName: "", storeId: "", showHidden: false);
 
         var result = new List<object>();
         foreach (var category in categories)
@@ -99,7 +99,7 @@ public class CatalogController : ControllerBase
 
         // Get the category and all its subcategories
         var categoryIds = new List<string> { categoryId };
-        var allCategories = await _categoryService.GetAllCategories(showHidden: false);
+        var allCategories = await _categoryService.GetAllCategories(parentId: null, categoryName: "", storeId: "", showHidden: false);
         var subcategories = GetSubcategoriesRecursive(allCategories, categoryId);
         categoryIds.AddRange(subcategories.Select(c => c.Id));
 

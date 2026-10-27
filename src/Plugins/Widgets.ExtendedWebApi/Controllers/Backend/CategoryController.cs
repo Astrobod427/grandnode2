@@ -25,7 +25,7 @@ public class CategoryController : BaseBackendApiController
         if (!await _permissionService.Authorize(StandardPermission.ManageCategories))
             return Forbid();
 
-        var categories = await _categoryService.GetAllCategories(
+        var categories = await _categoryService.GetAllCategories(parentId: null, categoryName: "", storeId: "",
             pageIndex: pageIndex,
             pageSize: pageSize,
             showHidden: true
